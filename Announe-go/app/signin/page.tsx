@@ -1,78 +1,152 @@
 "use client"
 
+import { zodResolver } from "@hookform/resolvers/zod"
+import { useForm } from "react-hook-form"
+import { z } from "zod"
+
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form"
+import { Input } from "@/components/ui/input"
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+} from "@/components/ui/card"
+import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui"
 import Link from "next/link"
+import { Checkbox } from "@/components/ui/checkbox"
+import { useState } from "react"
+
+const formSchema = z.object({
+  id: z.string().min(5, {
+    message: "아이디는 필수 입력 항목입니다.",
+  }),
+  password: z
+    .string()
+    .min(6, {
+      message: "비밀번호는 8자 이상 입력해주세요.",
+    })
+    .regex(/[a-z]/, {
+      message: "비밀번호에 소문자가 포함되어야 합니다.",
+    })
+    .regex(/[A-Z]/, {
+      message: "비밀번호에 대문자가 포함되어야 합니다.",
+    })
+    .regex(/[!@#$%^&*(),.?":{}|<>]/, {
+      message: "비밀번호에 특수문자가 포함되어야 합니다.",
+    }),
+})
 
 function SignInPage() {
+  const [remember, setRemember] = useState<boolean>(false)
+  const [id, setId] = useState<string>("")
+  const [password, setPassword] = useState<string>("")
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      id: "",
+      password: "",
+    },
+  })
+
+  function onSubmit(data: z.infer<typeof formSchema>) {
+    const { id, password } = data
+    setId(id)
+    setPassword(password)
+
+    const params = {
+      id,
+      password,
+      remember,
+    }
+
+    console.log(`params:`, params)
+  }
+
   return (
     <main className="flex w-full justify-center">
       <div className="w-full max-w-md px-4 py-10">
-        <div className="mb-8 text-center">
-          <h1 className="text-2xl font-semibold">로그인</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            계정에 접속하려면 이메일과 비밀번호를 입력하세요.
-          </p>
-        </div>
+        <Card className="w-full max-w-sm">
+          <CardHeader>
+            <CardTitle>로그인</CardTitle>
+            <CardDescription>아이디와 비밀번호를 입력해주세요.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Form {...form}>
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="space-y-8"
+              >
+                <FormField
+                  control={form.control}
+                  name="id"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>아이디</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="아이디를 입력해주세요."
+                          type="text"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>비밀번호</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="대소문자와 특수문자를 포함한 6자 이상의 비밀번호를 입력해주세요."
+                          type="password"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button type="submit" className="w-full cursor-pointer">
+                  Login
+                </Button>
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="remember"
+                    name="remember"
+                    onCheckedChange={(checked) =>
+                      setRemember(checked === "indeterminate" ? false : checked)
+                    }
+                  />
+                  <Label htmlFor="remember">
+                    로그인 상태를 유지하시겠습니까?
+                  </Label>
+                </div>
+              </form>
+            </Form>
+          </CardContent>
 
-        <div className="border rounded-lg bg-card text-card-foreground shadow-sm">
-          <form
-            className="p-6 space-y-5"
-            method="post"
-            action="/api/auth/signin"
-          >
-            <div className="space-y-2">
-              <label htmlFor="email" className="text-sm font-medium">
-                이메일
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                required
-                placeholder="you@example.com"
-                className="block w-full rounded-md border bg-background px-3 py-2 text-sm outline-none border-input focus-visible:ring-2 focus-visible:ring-ring focus-visible:border-ring"
-                autoComplete="email"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <label htmlFor="password" className="text-sm font-medium">
-                  비밀번호
-                </label>
-                <Link
-                  href="/forgot-password"
-                  className="text-xs text-primary hover:underline underline-offset-4"
-                >
-                  비밀번호 찾기
-                </Link>
-              </div>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                required
-                placeholder="••••••••"
-                className="block w-full rounded-md border bg-background px-3 py-2 text-sm outline-none border-input focus-visible:ring-2 focus-visible:ring-ring focus-visible:border-ring"
-                autoComplete="current-password"
-              />
-            </div>
-
-            <Button type="submit" className="w-full">
-              이메일로 로그인
+          <CardFooter className="flex-col gap-2">
+            <Button variant="link" className="w-full cursor-pointer">
+              <Link href="/signup">아이디가 없으신가요?</Link>
             </Button>
-          </form>
-        </div>
-
-        <p className="mt-6 text-center text-sm text-muted-foreground">
-          계정이 없으신가요?{" "}
-          <Link
-            href="/signup"
-            className="text-primary underline-offset-4 hover:underline"
-          >
-            회원가입
-          </Link>
-        </p>
+          </CardFooter>
+        </Card>
       </div>
     </main>
   )
