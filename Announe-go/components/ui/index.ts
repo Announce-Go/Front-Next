@@ -19,3 +19,12 @@ export {
 export { Label } from "./label"
 export { Checkbox } from "./checkbox"
 export { Tabs, TabsList, TabsTrigger, TabsContent } from "./tabs"
+export { Calendar } from "./calendar"
+export {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "./table"

@@ -58,6 +58,9 @@ const formSchema = z.object({
   VenderProducts: z.array(z.string()).min(1, {
     message: "계약 상품은 필수 입력 항목입니다.",
   }),
+  Agreements: z.array(z.enum(["terms", "privacy"])).length(2, {
+    message: "이용약관과 개인정보 처리방침에 모두 동의해야 합니다.",
+  }),
 })
 
 function Vender() {
@@ -71,6 +74,7 @@ function Vender() {
       VenderName: "",
       VenderPhone: "",
       VenderProducts: [],
+      Agreements: [],
     },
   })
 
@@ -83,6 +87,7 @@ function Vender() {
       VenderName: data.VenderName,
       VenderPhone: data.VenderPhone,
       VenderProducts: data.VenderProducts,
+      Agreements: data.Agreements,
     }
     console.log(`params:`, params)
   }
@@ -239,6 +244,64 @@ function Vender() {
                                   field.onChange(
                                     (field.value ?? []).filter(
                                       (v: string) => v !== opt.value
+                                    )
+                                  )
+                                }
+                              }}
+                            />
+                            <Label htmlFor={opt.id}>{opt.label}</Label>
+                          </div>
+                        )
+                      })}
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="Agreements"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm font-medium mb-2 text-[15px]">
+                      약관 동의
+                    </FormLabel>
+                    <div className="flex flex-col items-start gap-3">
+                      {(
+                        [
+                          {
+                            id: "agree-terms",
+                            label: "이용약관 동의 (필수)",
+                            value: "terms",
+                          },
+                          {
+                            id: "agree-privacy",
+                            label: "개인정보 처리방침 동의 (필수)",
+                            value: "privacy",
+                          },
+                        ] as const
+                      ).map((opt) => {
+                        const checked = (field.value ?? []).includes(opt.value)
+                        return (
+                          <div
+                            className="flex items-center gap-2"
+                            key={opt.value}
+                          >
+                            <Checkbox
+                              id={opt.id}
+                              checked={checked}
+                              onCheckedChange={(ck) => {
+                                const isChecked =
+                                  ck === "indeterminate" ? false : ck
+                                if (isChecked) {
+                                  field.onChange([
+                                    ...(field.value ?? []),
+                                    opt.value,
+                                  ])
+                                } else {
+                                  field.onChange(
+                                    (field.value ?? []).filter(
+                                      (v) => v !== opt.value
                                     )
                                   )
                                 }
