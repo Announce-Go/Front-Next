@@ -26,6 +26,7 @@ import { Button } from "@/components/ui"
 import Link from "next/link"
 import { Checkbox } from "@/components/ui/checkbox"
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 
 const formSchema = z.object({
   id: z.string().min(5, {
@@ -48,6 +49,7 @@ const formSchema = z.object({
 })
 
 function SignInPage() {
+  const router = useRouter()
   const [remember, setRemember] = useState<boolean>(false)
   const [id, setId] = useState<string>("")
   const [password, setPassword] = useState<string>("")
@@ -72,6 +74,7 @@ function SignInPage() {
     }
 
     console.log(`params:`, params)
+    router.push("/dashboard")
   }
 
   return (

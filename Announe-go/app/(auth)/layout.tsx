@@ -1,10 +1,12 @@
-export default function SignInLayout({
+import { AppSubHeader } from "@/components/common"
+export default function AuthLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <AppSubHeader />
       {children}
     </div>
   )
