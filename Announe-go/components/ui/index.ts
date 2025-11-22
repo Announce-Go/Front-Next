@@ -28,3 +28,6 @@ export {
   TableHeader,
   TableRow,
 } from "./table"
+
+export { Popover, PopoverTrigger, PopoverContent } from "./popover"
+export { Command, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from "./command"

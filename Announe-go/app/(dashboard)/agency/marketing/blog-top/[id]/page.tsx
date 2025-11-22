@@ -13,70 +13,84 @@ import {
 import { useState, useEffect } from "react"
 import dayjs from "dayjs"
 import "dayjs/locale/ko"
+import apiData from "./apiData.json"
+import CreateBlogTop from "@/app/(dashboard)/agency/components/CreateBlogTop"
 
 dayjs.locale("ko")
 
+
+type LIST_DATA_TYPE = {
+  hospitalName?: string;
+  title: string;
+  dateList: string[];
+  rows: {
+    keyWord: string;
+    count: number;
+    values: {date: string, rank: number}[];
+  }[]
+}
+
+
 function AgencyMarketingBlogTopDetailPage() {
-  const [startDate, setStartDate] = useState<string>("20251028")
-
-  const [today, setToday] = useState<string>("20251121")
-
-  // 노출 일자 리스트
-  const [list, setList] = useState<{ date: string; count: number }[]>([])
-  // 노출 시작일자
+  const [list, setList] = useState<LIST_DATA_TYPE>({
+    dateList: [],
+    rows: [],
+    title: ""
+  })
 
   useEffect(() => {
-    const days = dayjs(startDate)
-    const diffDays: number = dayjs(today).diff(dayjs(startDate), "day")
+    const res = apiData
+    setList(res)
+  }, [])
 
-    const newList = []
-    for (let i = 0; i < diffDays + 1; i++) {
-      newList.push({
-        date: days.add(i, "day").format("MM/DD(ddd)"),
-        count: i + 1,
-      })
-    }
-    setList(newList)
-  }, [startDate])
-
-  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    setStartDate("20251029")
-  }
   return (
     <div>
-      <Card>
-        <CardHeader>
-          <CardTitle>
-            1회차 상세
-            <button onClick={handleClick}>Click</button>
-            {startDate}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                {list.map((item, index) => (
-                  <TableHead key={index}>{item.date}</TableHead>
-                ))}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              <TableRow>
-                {list.map((item, index) => (
-                  <TableCell key={index}>
-                    {item.date === dayjs(today).format("MM/DD(ddd)") ? (
-                      <Input type="number" className="w-[65px]" />
-                    ) : (
-                      <>{item.count}</>
-                    )}
-                  </TableCell>
-                ))}
-              </TableRow>
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+      <div className="mx-auto w-full max-w-3xl space-y-4">
+        <Card>
+          <CardHeader>
+          <h4 className="text-lg font-bold">블로그 상위노출 [{dayjs().format("YYYY-MM-DD")}]</h4>
+          <p className="text-sm text-gray-500">광고주: {list.hospitalName}</p>
+          </CardHeader>
+        </Card>
+        <Card>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableCell>회차</TableCell>
+                  <TableCell>키워드</TableCell>
+                  <TableCell>카운트</TableCell>
+                  {list.dateList.map((item, index) => (
+                    <TableCell key={index}>{item}</TableCell>
+                  ))}
+
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {
+                  list.rows.map((item, index) => (
+                    <TableRow key={index}>
+                      {
+                        index === 0 && (
+                          <TableCell rowSpan={list.rows.length}>{list.title}</TableCell>
+                        )
+                      }
+                      <TableCell>{item.keyWord}</TableCell>
+                      <TableCell>{item.count}</TableCell>
+                      {item.values.map((value, index) => (
+                        <TableCell key={index}>{value.rank}</TableCell>
+                    ))}
+                    </TableRow>
+                  ))
+                }
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+
+        <CreateBlogTop />
+      </div>
+
     </div>
   )
 }
