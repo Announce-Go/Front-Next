@@ -30,7 +30,7 @@ function SideBar({ categoryType }: PROPS_TYPE) {
                 브랜드 블로그
               </Link>
               <Link
-                href="/cafe"
+                href="/agency/marketing/cafe"
                 className="block rounded-md px-3 py-2 hover:bg-accent hover:text-accent-foreground"
               >
                 카페
