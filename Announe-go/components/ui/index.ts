@@ -31,3 +31,5 @@ export {
 
 export { Popover, PopoverTrigger, PopoverContent } from "./popover"
 export { Command, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from "./command"
+export { FieldSet, FieldLegend, FieldGroup, Field, FieldContent, FieldLabel, FieldDescription, FieldSeparator, FieldError } from "./field"
+export { Separator } from "./separator"

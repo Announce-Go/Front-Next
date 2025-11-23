@@ -18,13 +18,13 @@ function SideBar({ categoryType }: PROPS_TYPE) {
           categoryType === "agency" && (
             <nav className="space-y-1">
               <Link
-                href="/blog"
+                href="/agency/marketing/blog-top/1"
                 className="block rounded-md px-3 py-2 hover:bg-accent hover:text-accent-foreground"
               >
                 블로그 상위노출
               </Link>
               <Link
-                href="/brandBlog"
+                href="/agency/marketing/brand-blog"
                 className="block rounded-md px-3 py-2 hover:bg-accent hover:text-accent-foreground"
               >
                 브랜드 블로그
