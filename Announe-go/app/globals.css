@@ -120,3 +120,19 @@
     @apply bg-background text-foreground;
   }
 }
+
+.page {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: auto;
+}
+
+.page-content {
+  width: 100vw;
+  padding-top: 68px;
+  padding-bottom: 68px;
+  flex: 1;
+}
