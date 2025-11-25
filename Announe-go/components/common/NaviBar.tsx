@@ -12,6 +12,12 @@ function NaviBar() {
         </div>
         <div className="flex items-center gap-2">
           <Link
+            href="/"
+            className="px-3 py-2 text-sm hover:underline underline-offset-4"
+          >
+            홈
+          </Link>
+          <Link
             href="/dashboard"
             className="px-3 py-2 text-sm hover:underline underline-offset-4"
           >
