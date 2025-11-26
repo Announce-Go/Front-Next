@@ -5,7 +5,7 @@ import { MonthChart, RegistStatus, DailyDeploy, CafeSignupConversion } from "./c
 function AgencyMarketingCafeManagementPage() {  
   return (
     <div>
-      <h1>AgencyMarketingCafeManagementPage</h1>
+      <h1 className="text-xl font-bold mb-3">카페운영</h1>
       <Tabs defaultValue="monthChart">
         <TabsList>
           <TabsTrigger value="monthChart">월간 통계</TabsTrigger>

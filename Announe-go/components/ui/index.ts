@@ -46,3 +46,4 @@ export {
   DialogTrigger,
 } from "./dialog"
 export { Textarea } from "./textarea"
+export { ChartContainer } from "./chart"

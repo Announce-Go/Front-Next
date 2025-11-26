@@ -1,0 +1,55 @@
+{
+  "data": [
+    {
+      "no": 1,
+      "date": "2024-11-01",
+      "cafeName": "알리다고 공식카페",
+      "title": "가입 안내 공지 업로드",
+      "url": "https://cafe.naver.com/announcego/1",
+      "comments": 12,
+      "views": 458,
+      "note": "상단 고정"
+    },
+    {
+      "no": 2,
+      "date": "2024-11-02",
+      "cafeName": "마케팅 정보 공유방",
+      "title": "이벤트 후기 모집",
+      "url": "https://cafe.naver.com/marketingroom/45",
+      "comments": 7,
+      "views": 320,
+      "note": "이벤트 참여 독려"
+    },
+    {
+      "no": 3,
+      "date": "2024-11-03",
+      "cafeName": "스타트업 네트워킹",
+      "title": "서비스 소개 게시물",
+      "url": "https://cafe.daum.net/startup-ally/302",
+      "comments": 3,
+      "views": 188,
+      "note": "문의 2건"
+    },
+    {
+      "no": 4,
+      "date": "2024-11-04",
+      "cafeName": "프리랜서 커뮤니티",
+      "title": "가입 혜택 안내",
+      "url": "https://cafe.naver.com/freelancertalk/88",
+      "comments": 15,
+      "views": 512,
+      "note": "단체 문의 예정"
+    },
+    {
+      "no": 5,
+      "date": "2024-11-05",
+      "cafeName": "콘텐츠 마케터 모임",
+      "title": "실무자 후기 공유",
+      "url": "https://cafe.naver.com/contentcrew/129",
+      "comments": 5,
+      "views": 276,
+      "note": "좋아요 40+"
+    }
+  ]
+}
+

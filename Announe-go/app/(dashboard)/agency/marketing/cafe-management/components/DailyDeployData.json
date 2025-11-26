@@ -1,0 +1,50 @@
+{
+  "data": [
+    {
+      "no": 1,
+      "date": "2024-11-01",
+      "cancerType": "유방암",
+      "board": "유방암 환우회",
+      "title": "치료 경험 공유 게시물",
+      "url": "https://cafe.naver.com/breastcancer/123",
+      "note": "상단 고정"
+    },
+    {
+      "no": 2,
+      "date": "2024-11-02",
+      "cancerType": "폐암",
+      "board": "폐암 정보 공유방",
+      "title": "신약 임상시험 안내",
+      "url": "https://cafe.naver.com/lungcancer/456",
+      "note": "많은 문의"
+    },
+    {
+      "no": 3,
+      "date": "2024-11-03",
+      "cancerType": "대장암",
+      "board": "대장암 커뮤니티",
+      "title": "수술 후 관리 팁",
+      "url": "https://cafe.daum.net/coloncancer/789",
+      "note": "좋아요 50+"
+    },
+    {
+      "no": 4,
+      "date": "2024-11-04",
+      "cancerType": "위암",
+      "board": "위암 환자 모임",
+      "title": "식단 관리 가이드",
+      "url": "https://cafe.naver.com/stomachcancer/321",
+      "note": "공유 20회"
+    },
+    {
+      "no": 5,
+      "date": "2024-11-05",
+      "cancerType": "갑상선암",
+      "board": "갑상선암 정보방",
+      "title": "호르몬 치료 후기",
+      "url": "https://cafe.naver.com/thyroidcancer/654",
+      "note": "댓글 활발"
+    }
+  ]
+}
+
