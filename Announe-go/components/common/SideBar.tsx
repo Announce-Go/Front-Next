@@ -18,11 +18,18 @@ function SideBar({ categoryType }: PROPS_TYPE) {
           categoryType === "agency" && (
             <nav className="space-y-1">
               <Link
-                href="/agency/marketing/blog-top/1"
+                href="/agency/marketing/monthly-plan/1"
                 className="block rounded-md px-3 py-2 hover:bg-accent hover:text-accent-foreground"
               >
-                블로그 상위노출
+                상위노출 월보장
               </Link>
+              <Link
+                href="/agency/marketing/per-item"
+                className="block rounded-md px-3 py-2 hover:bg-accent hover:text-accent-foreground"
+              >
+                건바이건
+              </Link>
+
               <Link
                 href="/agency/marketing/brand-blog"
                 className="block rounded-md px-3 py-2 hover:bg-accent hover:text-accent-foreground"
@@ -33,13 +40,13 @@ function SideBar({ categoryType }: PROPS_TYPE) {
                 href="/agency/marketing/cafe"
                 className="block rounded-md px-3 py-2 hover:bg-accent hover:text-accent-foreground"
               >
-                카페
+                카페 바이럴
               </Link>
               <Link
-                href="/paper"
+                href="/agency/marketing/cafe-management"
                 className="block rounded-md px-3 py-2 hover:bg-accent hover:text-accent-foreground"
               >
-                영수증 리뷰
+                카페 운영
               </Link>
             </nav>
           )

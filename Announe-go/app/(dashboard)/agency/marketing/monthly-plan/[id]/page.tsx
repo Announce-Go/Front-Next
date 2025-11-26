@@ -52,7 +52,7 @@ function AgencyMarketingBlogTopDetailPage() {
           <CardHeader>
             <div className="w-[100px]">
               <Button >
-                <Link href={`/agency/marketing/blog-top/new`}>블로그 상위노출 입력하기</Link>
+                <Link href={`/agency/marketing/monthly-plan/new`}>월보장 입력하기</Link>
               </Button>
             </div>
             <h4 className="text-lg font-bold">블로그 상위노출 [{dayjs().format("YYYY-MM-DD")}]</h4>

@@ -45,3 +45,4 @@ export {
   DialogTitle,
   DialogTrigger,
 } from "./dialog"
+export { Textarea } from "./textarea"

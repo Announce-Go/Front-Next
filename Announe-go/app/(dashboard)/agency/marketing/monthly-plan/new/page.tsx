@@ -44,11 +44,15 @@ function AgencyMarketingBlogTopNewPage() {
               <div className="flex items-center gap-6">
                 <label className="flex items-center gap-2">
                   <Checkbox id="type-once" />
-                  <span>건바이건</span>
+                  <span>인기글</span>
                 </label>
                 <label className="flex items-center gap-2">
                   <Checkbox id="type-monthly" />
-                  <span>월보장</span>
+                  <span>스마트블럭</span>
+                </label>
+                <label className="flex items-center gap-2">
+                  <Checkbox id="type-monthly" />
+                  <span>타랭킹</span>
                 </label>
               </div>
             </div>
