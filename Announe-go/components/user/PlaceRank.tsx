@@ -11,9 +11,8 @@ export function PlaceRank() {
 
 
   const getList = async (keyword: string, placeAddress: string) => {
-    const res = await fetch(`/api/ranks/place?keyword=${keyword}&url=${placeAddress}`);   
-    const data = await res.json();
-    console.log(`data:`, data)
+    const res = await fetch(`/api/v1/ranks/place?keyword=${keyword}&url=${placeAddress}`);   
+    const data = await res.json(); 
     return data;
   }
 
@@ -35,6 +34,8 @@ export function PlaceRank() {
     setKeyword("");
     setPlaceAddress("");
   }
+
+  if (isLoading) return <div>Loading...</div>
 
   return (
     <div className="flex flex-col gap-6">
