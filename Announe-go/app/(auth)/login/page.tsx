@@ -29,7 +29,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 
 const formSchema = z.object({
-  id: z.string().min(5, {
+  id: z.string().min(4, {
     message: "아이디는 필수 입력 항목입니다.",
   }),
   password: z
@@ -74,7 +74,7 @@ function SignInPage() {
     }
 
     console.log(`params:`, params)
-    router.push("/dashboard")
+    router.push("/user")
   }
 
   return (
