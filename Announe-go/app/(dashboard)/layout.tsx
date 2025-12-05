@@ -1,5 +1,10 @@
 import { SideBar } from "@/components/common/SideBar"
 function DashboardLayout({ children }: { children: React.ReactNode }) {
+
+  const userType: USER_TYPE = {
+    type: "agency",
+  }
+
   return (
     <div className="flex h-screen overflow-hidden bg-white">
       <SideBar />

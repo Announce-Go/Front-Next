@@ -28,3 +28,22 @@ export {
   TableHeader,
   TableRow,
 } from "./table"
+
+export { Popover, PopoverTrigger, PopoverContent } from "./popover"
+export { Command, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from "./command"
+export { FieldSet, FieldLegend, FieldGroup, Field, FieldContent, FieldLabel, FieldDescription, FieldSeparator, FieldError } from "./field"
+export { Separator } from "./separator"
+export {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogOverlay,
+  DialogPortal,
+  DialogTitle,
+  DialogTrigger,
+} from "./dialog"
+export { Textarea } from "./textarea"
+export { ChartContainer } from "./chart"

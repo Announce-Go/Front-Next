@@ -74,7 +74,7 @@ function SignInPage() {
     }
 
     console.log(`params:`, params)
-    router.push("/user")
+    router.push("/agency/dashboard")
   }
 
   return (

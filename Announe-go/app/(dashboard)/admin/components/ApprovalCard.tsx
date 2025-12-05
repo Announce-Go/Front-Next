@@ -13,7 +13,8 @@ function ApprovalCard() {
         <CardTitle>승인 대기 중</CardTitle>
       </CardHeader>
       <CardContent>
-        <h1> 승인 대기 중인 병원 수: 10개</h1>
+        <div> 승인 대기 중인 광고주 수: 10개</div>
+        <div> 승인 대기 중인 업체주 수: 10개</div>
       </CardContent>
     </Card>
   )
