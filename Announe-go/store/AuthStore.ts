@@ -20,6 +20,9 @@ export const useAuthStore = create<AuthType>(() => {
     name: "테스트계정입니다.",
     password: "1234",
     role: "USER",
+    keywordList: [{
+      
+    }]
   }
 })
 

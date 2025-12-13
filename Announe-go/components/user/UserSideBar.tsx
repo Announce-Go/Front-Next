@@ -1,6 +1,8 @@
+"use client"
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { HomeIcon } from "lucide-react";
+import { usePathname } from "next/navigation";
 
 
 const MENU_ITEMS = [
@@ -10,8 +12,8 @@ const MENU_ITEMS = [
   }
 ]
 
-
 export function UserSideBar() {
+  const pathname = usePathname()
 
   return (
     <aside className="w-64 h-full border-r border-gray-200 bg-white flex flex-col hidden md:flex">
@@ -25,8 +27,8 @@ export function UserSideBar() {
             </Link>
           </Button>
         </h1>
-        <p className="text-md text-gray-500">
-          메뉴를 선택해주세요.
+        <p className="text-md text-gray-500 font-bold text-orange-500">
+          더엘커뮤니케이션
         </p>
       </div>
 
@@ -37,7 +39,7 @@ export function UserSideBar() {
             <li key={item.label}>
               <Link 
                 href={item.href}
-                className="block px-3 py-2 text-sm font-medium text-gray-600 rounded-md hover:bg-gray-50 hover:text-gray-900 transition-colors"
+                className={`block px-3 py-2 text-sm font-medium text-gray-600 rounded-md hover:bg-gray-50 hover:text-gray-900 transition-colors ${ pathname === item.href ? `bg-gray-200 text-gray-900` : ""}`}
               >
                 {item.label}
               </Link>

@@ -10,7 +10,7 @@ export default function HomePage() {
           {/* 메인 환영 메시지 */}
           <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-1000">
             <h1 className="text-2xl md:text-6xl lg:text-7xl font-bold text-foreground tracking-tight">
-              알리다고에 오신 것을
+              모두보고에 오신 것을
               <br />
               <span className="text-primary">환영합니다</span>
             </h1>

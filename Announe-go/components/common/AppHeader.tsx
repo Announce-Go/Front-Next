@@ -8,7 +8,7 @@ function AppHeader() {
         {/* 로고 영역 */}
         <div className="flex items-center">
           <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-            <Image src="/main-logo-gold.png" alt="logo" width={80} height={80} />
+            <Image src="/logo.svg" alt="logo" width={80} height={80} />
           </Link>
         </div>
 
