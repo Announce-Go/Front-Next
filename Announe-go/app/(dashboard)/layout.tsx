@@ -1,22 +1,14 @@
-import { SideBar, NaviBar } from "@/components/common"
-
-
-type USER_TYPE = {
-  type: "agency" | "hospital" | "admin"
-}
-
+import { SideBar } from "@/components/common/SideBar"
 function DashboardLayout({ children }: { children: React.ReactNode }) {
 
-  const userType: USER_TYPE = {
-    type: "agency",
-  }
 
   return (
-    <div>
-      <NaviBar />
-      <div className="flex">
-        <SideBar categoryType={userType.type} />
-        <main className="ml-64 flex-1 p-4">{children}</main>
+    <div className="flex h-screen overflow-hidden bg-white">
+      <SideBar />
+      <div className="flex-1 overflow-y-auto">
+        <div className="px-8 py-12">
+          <main className="flex-1 p-4">{children}</main>
+        </div>
       </div>
     </div>
   )

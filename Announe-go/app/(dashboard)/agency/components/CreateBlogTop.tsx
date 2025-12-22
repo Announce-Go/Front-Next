@@ -10,7 +10,7 @@ import { CheckIcon } from "lucide-react"
 import { Button } from "@/components/ui"
 import { ChevronsUpDownIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
-import apiData from "@/app/(dashboard)/agency/marketing/blog-top/[id]/apiData.json"
+import apiData from "@/app/(dashboard)/agency/marketing/monthly-plan/[id]/apiData.json"
 import { Label } from "@/components/ui"
 
 

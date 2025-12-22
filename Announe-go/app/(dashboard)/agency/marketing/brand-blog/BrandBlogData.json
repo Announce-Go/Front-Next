@@ -2,22 +2,44 @@
 {
   "data": [
     {
+      "date": "2025-11-20",
       "keyword": "서울암요양병원",
       "url": "https://www.brand-blog.com",
       "rank": 1,
-      "publish": true
+      "publish": true,
+      "memo": "특이사항 없음"
     },
     {
+      "date": "2025-11-21",
       "keyword": "암환자식단",
       "url": "https://www.brand-blog.com/2",
       "rank": 2,
-      "publish": false
+      "publish": false,
+      "memo": ""
     },
     {
+      "date": "2025-11-22",
       "keyword": "폐암요양병원",
       "url": "https://www.brand-blog.com/2",
       "rank": 2,
-      "publish": false
+      "publish": false,
+      "memo": "순위 변경"
+    },
+    {
+      "date": "2025-11-23",
+      "keyword": "요양원",
+      "url": "https://www.brand-blog.com/2",
+      "rank": 2,
+      "publish": false,
+      "memo": ""
+    },
+    {
+      "date": "2025-11-24",
+      "keyword": "리움한방병원",
+      "url": "https://www.brand-blog.com/2",
+      "rank": 2,
+      "publish": false,
+      "memo": ""
     }
   ]
 }

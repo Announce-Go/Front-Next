@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import "./globals.css"
-import { AppHeader, AppFooter } from "@/components/common"
+import { Toaster } from "sonner"
+import Providers from "./providers"
 
 export const metadata: Metadata = {
   title: "Announce-go",
@@ -14,7 +15,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko">
-      <body className={`antialiased`}>{children}</body>
+      <body className={`antialiased`}>
+        <Providers>{children}</Providers>
+        <Toaster />
+      </body>
     </html>
   )
 }

@@ -6,7 +6,7 @@ function AppFooter() {
           {/* 회사 정보 */}
           <div className="flex flex-col gap-2 text-sm text-muted-foreground">
             <div className="flex flex-col md:flex-row md:items-center md:gap-2">
-              <span className="font-semibold text-foreground">알리다고 컨설팅</span>
+              <span className="font-semibold text-foreground">모두보고</span>
               <span className="hidden md:inline">|</span>
               <span>대표 전형진</span>
               <span className="hidden md:inline">|</span>

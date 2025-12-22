@@ -1,5 +1,5 @@
-import Link from "next/link"
-import Image from "next/image"
+import Link from "next/link";
+import Image from "next/image";
 
 function AppHeader() {
   return (
@@ -7,9 +7,11 @@ function AppHeader() {
       <div className="flex items-center justify-between h-full px-4 md:px-6 lg:px-8">
         {/* 로고 영역 */}
         <div className="flex items-center">
-          <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-            {/* <Image src="/main-logo-gold.png" alt="logo" width={80} height={80} /> */}
-            <span className="text-xl font-bold">모두의보고</span>
+          <Link
+            href="/"
+            className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+          >
+            <Image src="/logo.svg" alt="logo" width={80} height={80} />
           </Link>
         </div>
 
@@ -19,7 +21,7 @@ function AppHeader() {
         </div>
       </div>
     </header>
-  )
+  );
 }
 
-export { AppHeader }
+export { AppHeader };
