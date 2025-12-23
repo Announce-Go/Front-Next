@@ -13,31 +13,11 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-// Icon mapping helper
-const getIcon = (label: string) => {
-  switch (label) {
-    case "대시보드":
-      return <LayoutDashboard className="w-4 h-4" />;
-    case "회원가입 승인 관리":
-      return <UserCheck className="w-4 h-4" />;
-    case "광고주 목록 관리":
-      return <BadgeDollarSign className="w-4 h-4" />;
-    case "업체 목록 관리":
-      return <Briefcase className="w-4 h-4" />;
-    case "언론기사 관리":
-      return <Newspaper className="w-4 h-4" />;
-    case "카페 침투 관리":
-      return <MessageCircle className="w-4 h-4" />;
-    default:
-      return <ChevronRight className="w-4 h-4" />;
-  }
-};
-
 export function AdminSideBar() {
   const pathname = usePathname();
 
   return (
-    <aside className="w-72 h-screen border-r border-gray-100 bg-white flex flex-col hidden md:flex font-sans fixed left-0 top-0 z-50 shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
+    <aside className="w-72 h-screen border-r border-gray-100 bg-white flex flex-col hidden md:flex font-sans left-0 top-0 z-50 shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
       {/* 1. Brand Header & Search */}
       <div className="p-6 pb-2">
         <div className="flex items-center gap-2 mb-6 px-1">
