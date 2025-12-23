@@ -1,24 +1,26 @@
-import type { Metadata } from "next"
-import "./globals.css"
-import { Toaster } from "sonner"
-import Providers from "./providers"
+import type { Metadata } from "next";
+import "./globals.css";
+import { Toaster } from "sonner";
+import Providers from "./providers";
+import { AuthInit } from "@/components/common/AuthInit";
 
 export const metadata: Metadata = {
   title: "Announce-go",
   description: "Announce-go",
-}
+};
 
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode
+  children: React.ReactNode;
 }>) {
   return (
     <html lang="ko">
       <body className={`antialiased`}>
+        <AuthInit />
         <Providers>{children}</Providers>
         <Toaster />
       </body>
     </html>
-  )
+  );
 }

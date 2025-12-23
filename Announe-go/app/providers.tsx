@@ -1,16 +1,18 @@
 // app/providers.tsx
-'use client';
+"use client";
 
-import { QueryClientProvider } from '@tanstack/react-query';
-import { QueryClient } from '@tanstack/react-query';
+import { QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient } from "@tanstack/react-query";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 
 const queryClient = new QueryClient();
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   return (
     // 💡 Provider가 최상단에 위치하여 하위 컴포넌트에 Context 제공
-    <QueryClientProvider client={queryClient}> 
+    <QueryClientProvider client={queryClient}>
       {children}
+      <ReactQueryDevtools />
     </QueryClientProvider>
   );
 }
