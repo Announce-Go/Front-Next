@@ -1,7 +1,7 @@
-"use client"
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
-import Client from "./components/Client"
-import Vender from "./components/Vender"
+"use client";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import Client from "../../../features/auth/components/Client";
+import Vender from "../../../features/auth/components/Vender";
 function SignUpPage() {
   return (
     <main className="flex w-full justify-center">
@@ -24,7 +24,7 @@ function SignUpPage() {
         </Tabs>
       </div>
     </main>
-  )
+  );
 }
 
-export default SignUpPage
+export default SignUpPage;
