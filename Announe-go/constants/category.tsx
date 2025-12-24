@@ -40,6 +40,25 @@ export const category = {
       ],
     },
     {
+      순위관리: [
+        {
+          label: "플레이스",
+          href: "/admin/place-rank",
+          icon: <UserCheck className="w-4 h-4" />,
+        },
+        {
+          label: "카페",
+          href: "/admin/advertisers",
+          icon: <BadgeDollarSign className="w-4 h-4" />,
+        },
+        {
+          label: "블로그",
+          href: "/admin/agencies",
+          icon: <Briefcase className="w-4 h-4" />,
+        },
+      ],
+    },
+    {
       포스팅관리: [
         {
           label: "언론기사 관리",

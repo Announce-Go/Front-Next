@@ -25,7 +25,7 @@ export function AdminSideBar() {
             A
           </div>
           <h1 className="text-xl font-bold text-gray-900 tracking-tight">
-            Brand Admin
+            관리자
           </h1>
         </div>
 
@@ -95,7 +95,7 @@ export function AdminSideBar() {
           </div>
           <div className="flex flex-col">
             <span className="text-sm font-semibold text-gray-700">
-              Admin User
+              Admin
             </span>
             <span className="text-xs text-gray-400">v1.0.0</span>
           </div>
