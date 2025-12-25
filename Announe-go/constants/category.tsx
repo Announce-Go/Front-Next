@@ -48,12 +48,12 @@ export const category = {
         },
         {
           label: "카페",
-          href: "/admin/advertisers",
+          href: "/admin/cafe-rank",
           icon: <BadgeDollarSign className="w-4 h-4" />,
         },
         {
           label: "블로그",
-          href: "/admin/agencies",
+          href: "/admin/blog-rank",
           icon: <Briefcase className="w-4 h-4" />,
         },
       ],
@@ -61,12 +61,17 @@ export const category = {
     {
       포스팅관리: [
         {
-          label: "언론기사 관리",
+          label: "브랜드 블로그",
           href: "/admin/press",
           icon: <Newspaper className="w-4 h-4" />,
         },
         {
-          label: "카페 침투 관리",
+          label: "언론기사",
+          href: "/admin/press",
+          icon: <Newspaper className="w-4 h-4" />,
+        },
+        {
+          label: "카페 침투",
           href: "/admin/cafe-infiltration",
           icon: <MessageCircle className="w-4 h-4" />,
         },
