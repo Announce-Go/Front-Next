@@ -129,7 +129,7 @@ export default function PlaceRankPage() {
                         <span>20일 / 25일</span>
                         <span className="font-medium text-green-600">80%</span>
                       </div>
-                      <Progress value={80} className="h-2 bg-slate-100" indicatorColor="bg-green-500" />
+                      <Progress value={80} className="h-2 bg-slate-100" />
                     </div>
                   </TableCell>
                   <TableCell className="text-right">
@@ -175,7 +175,7 @@ export default function PlaceRankPage() {
                         <span>25일 / 25일</span>
                         <span className="font-medium text-blue-600">완료</span>
                       </div>
-                      <Progress value={100} className="h-2 bg-slate-100" indicatorColor="bg-blue-500" />
+                      <Progress value={100} className="h-2 bg-slate-100" />
                     </div>
                   </TableCell>
                   <TableCell className="text-right">
@@ -217,7 +217,7 @@ export default function PlaceRankPage() {
                         <span>15일 / 25일</span>
                         <span className="font-medium text-green-600">60%</span>
                       </div>
-                      <Progress value={60} className="h-2 bg-slate-100" indicatorColor="bg-green-500" />
+                      <Progress value={60} className="h-2 bg-slate-100" />
                     </div>
                   </TableCell>
                   <TableCell className="text-right">
@@ -263,7 +263,7 @@ export default function PlaceRankPage() {
                         <span>18일 / 25일</span>
                         <span className="font-medium text-green-600">72%</span>
                       </div>
-                      <Progress value={72} className="h-2 bg-slate-100" indicatorColor="bg-green-500" />
+                      <Progress value={72} className="h-2 bg-slate-100" />
                     </div>
                   </TableCell>
                   <TableCell className="text-right">

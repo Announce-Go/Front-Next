@@ -62,7 +62,7 @@ export const category = {
       포스팅관리: [
         {
           label: "브랜드 블로그",
-          href: "/admin/press",
+          href: "/admin/brand-blog",
           icon: <Newspaper className="w-4 h-4" />,
         },
         {
