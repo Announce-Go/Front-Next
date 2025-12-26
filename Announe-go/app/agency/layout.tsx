@@ -3,7 +3,7 @@ function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex h-screen overflow-hidden bg-gray-50">
       {/* 1. 사이드바: 왼쪽 고정 */}
-      <SideBar type="admin" />
+      <SideBar type="agency" />
 
       {/* 2. 오른쪽 영역: 전체 레이아웃 (헤더 + 콘텐츠) */}
       <div className="flex-1 flex flex-col overflow-hidden">

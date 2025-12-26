@@ -124,46 +124,33 @@ export const category = {
   ],
   agency: [
     {
-      label: "대시보드",
-      href: "/agency/dashboard",
-      icon: "",
-      isView: true,
+      대시보드: [
+        {
+          label: "대시보드",
+          href: "/agency/dashboard",
+          icon: <LayoutDashboard className="w-4 h-4" />,
+        },
+      ],
     },
     {
-      label: "플레이스 순위 관리",
-      href: "/agency/place-rank",
-      icon: "",
-      isView: true,
-    },
-    {
-      label: "플레이스 순위 등록",
-      href: "/agency/place-rank/new",
-      icon: "",
-      isView: true,
-    },
-    {
-      label: "블로그 순위 관리",
-      href: "/agency/blog-rank",
-      icon: "",
-      isView: true,
-    },
-    {
-      label: "블로그 순위 등록",
-      href: "/agency/blog-rank/new",
-      icon: "",
-      isView: true,
-    },
-    {
-      label: "카페 순위 관리",
-      href: "/agency/cafe-rank",
-      icon: "",
-      isView: true,
-    },
-    {
-      label: "카페 순위 등록",
-      href: "/agency/cafe-rank/new",
-      icon: "",
-      isView: true,
-    },
+      순위관리: [
+        {
+          label: "플레이스",
+          href: "/agency/place-rank",
+          icon: <LayoutDashboard className="w-4 h-4" />,
+        },
+        {
+          label: "카페",
+          href: "/agency/cafe-rank",
+          icon: <BadgeDollarSign className="w-4 h-4" />,
+        },
+        {
+          label: "블로그",
+          href: "/agency/blog-rank",
+          icon: <Briefcase className="w-4 h-4" />,
+        },
+
+      ],
+    }
   ],
 };
