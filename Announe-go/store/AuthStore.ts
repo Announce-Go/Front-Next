@@ -1,4 +1,5 @@
 import { create } from "zustand"
+import { persist } from "zustand/middleware"
 import { AuthType } from "@/types/AuthTypes"
 /**
  * 인증 상태 관리
@@ -12,17 +13,31 @@ import { AuthType } from "@/types/AuthTypes"
   - USER: 사용자
   - MASTER: 마스터
 */
-
-
-export const useAuthStore = create<AuthType>(() => {
-  return {
-    id: "test",
-    name: "테스트계정입니다.",
-    password: "1234",
-    role: "USER",
-    keywordList: [{
-      
-    }]
-  }
-})
+export const useAuthStore = create<AuthType>()(
+  persist((set) => {
+    return {
+      user: null,
+      role: "",
+      accessToken: null,
+      setAuth: (payload) =>
+        set((state) => ({
+          user: payload.user !== undefined ? payload.user : state.user,
+          role:
+            payload.role !== undefined
+              ? (payload.role as any)
+              : payload.user?.role !== undefined
+                ? payload.user.role
+                : state.role,          
+        })),
+      clearAuth: () =>
+        set(() => ({
+          user: null,
+          role: "",
+          accessToken: null,
+        })),
+    }
+  }, {
+    name: "auth-storage",
+  })
+)
 
