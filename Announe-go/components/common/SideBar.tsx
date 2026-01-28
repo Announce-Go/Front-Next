@@ -1,8 +1,14 @@
 "use client";
 import { createSideBar } from "@/lib/sideBarFactory";
 
-function SideBar({type}:{type:string}) {
-  return <>{createSideBar(type)}</>;
+function SideBar() {
+  const { role } = useAuthStore()
+  const sideBar = createSideBar(role)
+  //console.log(`sideBar:`, sideBar)
+
+  return (
+    <>{sideBar}</>
+  )
 }
 
 export { SideBar };

@@ -52,7 +52,7 @@ export default function HomePage() {
           {/* CTA 버튼 */}
           <div className="mt-12 space-x-4 animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-500">
             <Button size="lg" className="text-lg px-8 py-6">
-              <Link href="/signin">시작하기</Link>
+              <Link href="/login">시작하기</Link>
             </Button>
             <Button size="lg" variant="outline" className="text-lg px-8 py-6">
               더 알아보기

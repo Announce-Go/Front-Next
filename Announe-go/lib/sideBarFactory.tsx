@@ -1,13 +1,20 @@
-import { UserSideBar } from "@/components/user/UserSideBar";
-import { AdminSideBar } from "@/components/admin/AdminSideBar";
-import { AgencySideBar } from "@/components/agency/AgencySideBar";
-import { MasterSideBar } from "@/components/master/MasterSideBar";
+import { UserSideBar } from "@/components/user/UserSideBar"
+import { AdminSideBar } from "@/components/admin/AdminSideBar"
+import { MasterSideBar } from "@/components/master/MasterSideBar"
+import { AdvertiserSideBar } from "@/components/advertiser/AdvertiserSideBar"
 
 const sideModule = {
+  USER: <UserSideBar />,
+  user: <UserSideBar />,
+  AGENCY: <UserSideBar />,
+  agency: <UserSideBar />,
+  ADMIN: <AdminSideBar />,
   admin: <AdminSideBar />,
-  advertisers: <AdminSideBar />,
-  agency: <AgencySideBar />,
-};
+  MASTER: <MasterSideBar />,
+  master: <MasterSideBar />,
+  ADVERTISER: <AdvertiserSideBar />,
+  advertiser: <AdvertiserSideBar />,
+}
 
 const createSideBar = (role: string) => {
   return sideModule[role as keyof typeof sideModule];

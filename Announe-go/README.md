@@ -1,4 +1,4 @@
-# 알리다고 (AnnounceGo)
+# 알리다고 (AnnounceGo)!!
 
 병원 광고 관리 시스템
 

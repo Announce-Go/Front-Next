@@ -27,9 +27,11 @@ import Link from "next/link"
 import { Checkbox } from "@/components/ui/checkbox"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { login } from "@/Features/apis/auth"
+import { useAuthStore } from "@/store/AuthStore"
 
 const formSchema = z.object({
-  id: z.string().min(4, {
+  login_id: z.string().min(4, {
     message: "아이디는 필수 입력 항목입니다.",
   }),
   password: z
@@ -40,41 +42,70 @@ const formSchema = z.object({
     .regex(/[a-z]/, {
       message: "비밀번호에 소문자가 포함되어야 합니다.",
     })
-    .regex(/[A-Z]/, {
-      message: "비밀번호에 대문자가 포함되어야 합니다.",
-    })
-    .regex(/[!@#$%^&*(),.?":{}|<>]/, {
-      message: "비밀번호에 특수문자가 포함되어야 합니다.",
-    }),
+    // .regex(/[A-Z]/, {
+    //   message: "비밀번호에 대문자가 포함되어야 합니다.",
+    // })
+    // .regex(/[!@#$%^&*(),.?":{}|<>]/, {
+    //   message: "비밀번호에 특수문자가 포함되어야 합니다.",
+    // }),
 })
 
 function SignInPage() {
   const router = useRouter()
-  const [remember, setRemember] = useState<boolean>(false)
-  const [id, setId] = useState<string>("")
+  const setAuth = useAuthStore((s) => s.setAuth)
+  const [remember_me, setRememberMe] = useState<boolean>(false)
+  const [login_id, setLoginId] = useState<string>("")
   const [password, setPassword] = useState<string>("")
+  const [serverError, setServerError] = useState<string>("")
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      id: "",
+      login_id: "",
       password: "",
     },
   })
 
-  function onSubmit(data: z.infer<typeof formSchema>) {
-    const { id, password } = data
-    setId(id)
+  async function onSubmit(data: z.infer<typeof formSchema>) {
+    const { login_id, password } = data
+    setLoginId(login_id)
     setPassword(password)
+    setServerError("")
 
     const params = {
-      id,
+      login_id,
       password,
-      remember,
+      remember_me,
     }
 
-    console.log(`params:`, params)
-    router.push("/agency/dashboard")
+    try {
+      const result = await login(params)
+
+      setAuth({
+        role: result.user.role,
+        user: result.user,
+      })
+    
+      
+      if (result.user.role === "admin") {
+        router.push("/admin/dashboard")
+        return
+      }
+      if (result.user.role === "agency") {
+        router.push("/agency/dashboard")
+        return
+      }
+      if (result.user.role === "advertiser") {
+        router.push("/advertiser/dashboard")
+        return
+      }
+
+      // role이 예상값이 아니면 기본 경로로 이동
+      router.push("/agency/dashboard")
+    } catch (e) {
+      setServerError("로그인에 실패했습니다. 아이디/비밀번호를 확인해주세요.")
+      console.error(e)
+    }
   }
 
   return (
@@ -93,7 +124,7 @@ function SignInPage() {
               >
                 <FormField
                   control={form.control}
-                  name="id"
+                  name="login_id"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>아이디</FormLabel>
@@ -128,15 +159,18 @@ function SignInPage() {
                 <Button type="submit" className="w-full cursor-pointer">
                   Login
                 </Button>
+                {serverError ? (
+                  <p className="text-sm text-red-500">{serverError}</p>
+                ) : null}
                 <div className="flex items-center gap-2">
                   <Checkbox
-                    id="remember"
-                    name="remember"
+                    id="remember_me"
+                    name="remember_me"
                     onCheckedChange={(checked) =>
-                      setRemember(checked === "indeterminate" ? false : checked)
+                      setRememberMe(checked === "indeterminate" ? false : checked)
                     }
                   />
-                  <Label htmlFor="remember">
+                  <Label htmlFor="remember_me">
                     로그인 상태를 유지하시겠습니까?
                   </Label>
                 </div>
