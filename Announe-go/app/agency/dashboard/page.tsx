@@ -33,6 +33,10 @@ import {
   LayoutDashboard
 } from "lucide-react"
 
+
+
+import { AgencyInfoCard } from "@/entities/agency/AgencyInfoCard"
+
 export default function AgencyDashboard() {
   return (
     <div className="p-8 bg-slate-50 min-h-screen">
@@ -57,21 +61,8 @@ export default function AgencyDashboard() {
       <section className="grid grid-cols-1 gap-4 sm:grid-cols-3 mb-8">
         
         {/* 매핑 광고주 */}
-        <Card className="shadow-sm border-l-4 border-l-blue-500">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-slate-600">매핑 광고주</CardTitle>
-            <div className="p-2 bg-blue-100 rounded-full">
-              <Users className="h-4 w-4 text-blue-600" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-slate-900">8개사</div>
-            <p className="text-xs text-blue-600 font-medium flex items-center mt-1">
-              <ArrowUpRight className="w-3 h-3 mr-1" />
-              신규 1개사
-            </p>
-          </CardContent>
-        </Card>
+        <AgencyInfoCard />
+          
 
         {/* 추적 중인 키워드 */}
         <Card className="shadow-sm border-l-4 border-l-indigo-500">

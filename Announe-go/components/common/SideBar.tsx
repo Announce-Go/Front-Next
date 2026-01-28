@@ -1,5 +1,6 @@
 "use client";
 import { createSideBar } from "@/lib/sideBarFactory";
+import { useAuthStore } from "@/store/AuthStore";
 
 function SideBar() {
   const { role } = useAuthStore()
