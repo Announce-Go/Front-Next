@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { HomeIcon } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { logout } from "@/Features/apis/auth";
-import { setAccessToken } from "@/Featchs/api/http";
 import { useState } from "react";
 import { useAuthStore } from "@/store/AuthStore";
 
@@ -12,7 +11,27 @@ import { useAuthStore } from "@/store/AuthStore";
 const MENU_ITEMS = [
   {
     label: "플레이스 순위 체크",
-    href: "/user/place",
+    href: "/agency/place-rank",
+  },
+  {
+    label: "카페 순위 체크",  
+    href: "/agency/cafe-rank",
+  },
+  {
+    label: "블로그 순위 체크",
+    href: "/agency/blog-rank",
+  },
+  {
+    label: "블로그 포스팅",
+    href: "/agency/blog-posting",
+  },
+  {
+    label: "언론기사",
+    href: "/agency/press",
+  },
+  {
+    label: "카페 침투",
+    href: "/agency/cafe-infiltration",
   }
 ]
 
@@ -27,7 +46,6 @@ export function UserSideBar() {
     setIsLoggingOut(true)
     try {
       await logout()
-      setAccessToken(null)
       clearAuth()
       router.push("/")
     } catch (e) {

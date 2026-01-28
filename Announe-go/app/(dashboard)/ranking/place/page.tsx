@@ -4,7 +4,7 @@ import {
   QueryClient,
 } from "@tanstack/react-query";
 import { getAuthCheck } from "@/lib/server-auth";
-import { PlaceDashboard } from "@/features/ranking/components/PlaceDashboard";
+import { PlaceDashboard } from "@/Features/ranking/components/PlaceDashboard";
 import { authKeys } from "@/hooks/queries/useRanking";
 
 export default async function RankingPlacePage() {

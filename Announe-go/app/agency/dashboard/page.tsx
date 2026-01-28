@@ -65,7 +65,7 @@ export default function AgencyDashboard() {
           
 
         {/* 추적 중인 키워드 */}
-        <Card className="shadow-sm border-l-4 border-l-indigo-500">
+        {/* <Card className="shadow-sm border-l-4 border-l-indigo-500">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-slate-600">총 추적 키워드</CardTitle>
             <div className="p-2 bg-indigo-100 rounded-full">
@@ -79,10 +79,10 @@ export default function AgencyDashboard() {
                전일 대비 +2
             </p>
           </CardContent>
-        </Card>
+        </Card> */}
 
         {/* 브랜드 블로그 포스팅 */}
-        <Card className="shadow-sm border-l-4 border-l-pink-500">
+        {/* <Card className="shadow-sm border-l-4 border-l-pink-500">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-slate-600">포스팅 기록</CardTitle>
             <div className="p-2 bg-pink-100 rounded-full">
@@ -95,7 +95,7 @@ export default function AgencyDashboard() {
                누적 발행수
             </p>
           </CardContent>
-        </Card>
+        </Card> */}
       </section>
 
       {/* 3. 카테고리별 현황 (Grid Layout) */}

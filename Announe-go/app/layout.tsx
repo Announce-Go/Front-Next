@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { Toaster } from "sonner";
+import { Toaster } from "@/components/ui/sonner";
 import Providers from "./providers";
 import { AuthInit } from "@/components/common/AuthInit";
 
@@ -19,7 +19,7 @@ export default function RootLayout({
       <body className={`antialiased`}>
         <AuthInit />
         <Providers>{children}</Providers>
-        <Toaster />
+        <Toaster position="top-center" />
       </body>
     </html>
   );

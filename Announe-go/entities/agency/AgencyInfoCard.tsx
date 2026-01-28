@@ -1,17 +1,15 @@
-import { http } from "@/Featchs/api/http"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
-import { Users, ArrowUpRight } from "lucide-react"
+import { Users } from "lucide-react"
 import type { AgencyAgenciesResponse } from "@/shared/types/agency"
+import { serverFetch } from "@/Featchs/api/server-fetch"
+
 
 
 
 export async function AgencyInfoCard() {
-
-  const { data: list } = await http.get<AgencyAgenciesResponse>("/api/v1/agency/advertisers")
-
-  
-
-
+  const data = await serverFetch<AgencyAgenciesResponse>("/api/v1/agency/advertisers", {
+    cache: 'no-store'
+  });
 
   return (
     <>
@@ -23,11 +21,11 @@ export async function AgencyInfoCard() {
         </div>
       </CardHeader>
       <CardContent>
-        <div className="text-2xl font-bold text-slate-900">8개사</div>
-        <p className="text-xs text-blue-600 font-medium flex items-center mt-1">
+        <div className="text-2xl font-bold text-slate-900">{data.total}개사</div>
+        {/* <p className="text-xs text-blue-600 font-medium flex items-center mt-1">
           <ArrowUpRight className="w-3 h-3 mr-1" />
           신규 1개사
-        </p>
+        </p> */}
       </CardContent>
     </Card>
     </>
