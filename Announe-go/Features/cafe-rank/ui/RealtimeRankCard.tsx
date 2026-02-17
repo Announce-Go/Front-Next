@@ -15,7 +15,7 @@ type RealtimeRankResponse = {
   checked_at: string
 }
 
-export function RealtimeRankCard() {
+export function CafeRealtimeRankCard() {
   const [keyword, setKeyword] = useState("")
   const [url, setUrl] = useState("")
   const [isLoading, setIsLoading] = useState(false)
@@ -26,14 +26,14 @@ export function RealtimeRankCard() {
     const urlTrimmed = url
 
     if (!keywordTrimmed || !urlTrimmed) {
-      toast.warning("키워드와 플레이스 URL을 입력해주세요.")
+      toast.warning("키워드와 카페 게시글 URL을 입력해주세요.")
       return
     }
 
     setIsLoading(true)
     try {
       const { data } = await http.get<RealtimeRankResponse>(
-        "/api/v1/agency/place-rank/realtime",
+        "/api/v1/agency/cafe-rank/realtime",
         {
           params: { keyword: keywordTrimmed, url: urlTrimmed },
         },
@@ -57,14 +57,14 @@ export function RealtimeRankCard() {
   }
 
   return (
-    <Card className="shadow-sm border-t-4 border-t-green-500 bg-white">
+    <Card className="shadow-sm border-t-4 border-t-red-500 bg-white">
       <CardHeader className="pb-4">
         <CardTitle className="text-lg flex items-center gap-2">
-          <Search className="w-5 h-5 text-green-600" />
+          <Search className="w-5 h-5 text-red-600" />
           실시간 순위 조회
         </CardTitle>
         <CardDescription>
-          키워드와 플레이스 URL을 입력하여 현재 순위를 즉시 확인합니다.
+          키워드와 카페 게시글 URL을 입력하여 현재 순위를 즉시 확인합니다.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -81,10 +81,10 @@ export function RealtimeRankCard() {
             />
           </div>
           <div className="grid w-full items-center gap-1.5 flex-1">
-            <label className="text-sm font-medium leading-none">플레이스 URL</label>
+            <label className="text-sm font-medium leading-none">카페 게시글 URL</label>
             <Input
               type="text"
-              placeholder="https://place.naver.com/..."
+              placeholder="https://cafe.naver.com/..."
               className="bg-slate-50"
               value={url}
               onChange={(e) => setUrl(e.target.value)}
@@ -93,7 +93,7 @@ export function RealtimeRankCard() {
           </div>
           <Button
             type="button"
-            className="bg-green-600 hover:bg-green-700 text-white min-w-[100px] disabled:opacity-50 disabled:cursor-not-allowed"
+            className="bg-red-600 hover:bg-red-700 text-white min-w-[100px] disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={onCheckRealtimeRank}
             disabled={isLoading}
           >
@@ -111,27 +111,27 @@ export function RealtimeRankCard() {
         {/* 조회 중 표시 */}
         {isLoading && (
           <div className="mt-6 p-4 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-center gap-3 animate-in fade-in">
-            <Loader2 className="w-5 h-5 animate-spin text-green-600" />
+            <Loader2 className="w-5 h-5 animate-spin text-red-600" />
             <p className="text-sm text-slate-600">순위를 조회하고 있습니다...</p>
           </div>
         )}
 
         {/* 조회 결과 영역 (조건부 렌더링) */}
         {!isLoading && lastResult ? (
-          <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg flex items-center justify-between animate-in fade-in slide-in-from-top-2">
+          <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center justify-between animate-in fade-in slide-in-from-top-2">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-white rounded-full shadow-sm">
-                <TrendingUp className="w-6 h-6 text-green-600" />
+                <TrendingUp className="w-6 h-6 text-red-600" />
               </div>
               <div>
-                <p className="text-sm font-medium text-green-800">조회 결과</p>
-                <p className="text-xs text-green-600">키워드: {lastResult.keyword}</p>
+                <p className="text-sm font-medium text-red-800">조회 결과</p>
+                <p className="text-xs text-red-600">키워드: {lastResult.keyword}</p>
               </div>
             </div>
             <div className="flex items-baseline gap-1">
-              <span className="text-sm text-green-700 font-medium mr-2">현재 순위</span>
-              <span className="text-3xl font-bold text-green-700">{lastResult.rank}</span>
-              <span className="text-lg font-medium text-green-600">위</span>
+              <span className="text-sm text-red-700 font-medium mr-2">현재 순위</span>
+              <span className="text-3xl font-bold text-red-700">{lastResult.rank}</span>
+              <span className="text-lg font-medium text-red-600">위</span>
             </div>
           </div>
         ) : null}
@@ -139,4 +139,3 @@ export function RealtimeRankCard() {
     </Card>
   )
 }
-
