@@ -1,14 +1,17 @@
 "use client"
 
 import { SideBar } from "@/components/common/SideBar"
-import { Button } from "@/components/ui/button"
+import { ThemeToggle } from "@/components/common/ThemeToggle"
 import { logout } from "@/Features/apis/auth"
 import { useAuthStore } from "@/store/AuthStore"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
+import { LogOut } from "lucide-react"
+
 function DashboardLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   const clearAuth = useAuthStore((s) => s.clearAuth)
+  const user = useAuthStore((s) => s.user)
   const [isLoggingOut, setIsLoggingOut] = useState(false)
 
   const onLogout = async () => {
@@ -17,7 +20,7 @@ function DashboardLayout({ children }: { children: React.ReactNode }) {
     try {
       await logout()
       clearAuth()
-      router.push("/")
+      router.replace("/login")
     } catch (e) {
       console.error(e)
     } finally {
@@ -26,33 +29,60 @@ function DashboardLayout({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50">
-      {/* 1. 사이드바: 왼쪽 고정 */}
+    <div
+      className="flex h-screen overflow-hidden"
+      style={{ background: "var(--th-page-bg)" }}
+    >
       <SideBar />
 
-      {/* 2. 오른쪽 영역: 전체 레이아웃 (헤더 + 콘텐츠) */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* (선택사항) 상단 헤더: 로그인 정보, 제목 등 */}
-        <header className="h-16 bg-white border-b flex items-center justify-end px-6">
+        {/* 헤더 */}
+        <header
+          className="h-16 flex items-center justify-end px-6 border-b flex-shrink-0"
+          style={{
+            background: "var(--th-header-bg)",
+            borderColor: "var(--th-header-border)",
+          }}
+        >
           <div className="flex items-center gap-3">
-            <Button
-              type="button"
-              variant="outline"
-              className="cursor-pointer"
+            <div className="text-right hidden sm:block">
+              <p className="text-sm font-medium" style={{ color: "var(--th-text-1)" }}>
+                {user?.name || "관리자"}
+              </p>
+              <p className="text-xs" style={{ color: "var(--th-text-3)" }}>
+                Administrator
+              </p>
+            </div>
+            <div
+              className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
+              style={{ background: "linear-gradient(135deg, #06b6d4, #6366f1)" }}
+            >
+              {(user?.name?.[0] || "A").toUpperCase()}
+            </div>
+
+            {/* 다크/라이트 토글 */}
+            <ThemeToggle />
+
+            {/* 로그아웃 */}
+            <button
               onClick={onLogout}
               disabled={isLoggingOut}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-all hover:opacity-75 disabled:opacity-50 cursor-pointer"
+              style={{
+                background: "var(--th-toggle-bg)",
+                color: "var(--th-text-2)",
+                border: "1px solid var(--th-toggle-border)",
+              }}
             >
-              {isLoggingOut ? "로그아웃 중..." : "로그아웃"}
-            </Button>
+              <LogOut className="w-3.5 h-3.5" />
+              {isLoggingOut ? "로그아웃 중이에요..." : "로그아웃"}
+            </button>
           </div>
         </header>
 
-        {/* 3. 메인 콘텐츠: 여기서만 스크롤 생김 */}
-        <main className="flex-1 overflow-y-auto p-8">
-          {/* max-w-7xl: 모니터가 너무 클 때 콘텐츠가 찢어지는 것 방지
-            mx-auto: 중앙 정렬
-          */}
-          <div className="mx-auto w-full p-4">{children}</div>
+        {/* 콘텐츠 */}
+        <main className="flex-1 overflow-y-auto">
+          <div className="mx-auto w-full p-6">{children}</div>
         </main>
       </div>
     </div>

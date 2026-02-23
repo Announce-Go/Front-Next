@@ -2,244 +2,257 @@
 
 import { useRouter } from "next/navigation"
 import { useQuery } from "@tanstack/react-query"
+import { ArrowLeft, AlertTriangle, Download, Eye } from "lucide-react"
+import { getAdminAdvertiserDetail } from "@/Features/apis/admin/advertisers"
 
-import {
-  getAdminAdvertiserDetail,
-  type AdminAdvertiserDetail,
-} from "@/Features/apis/admin/advertisers"
-
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Separator } from "@/components/ui/separator"
-
-import {
-  ChevronLeft,
-  Building2,
-  Mail,
-  Phone,
-  Calendar,
-  FileText,
-  ImageIcon,
-} from "lucide-react"
-
-function statusBadge(status: string) {
-  if (status === "pending") {
-    return <Badge className="bg-orange-100 text-orange-700 border-0">승인 대기</Badge>
-  }
-  if (status === "approved") {
-    return <Badge className="bg-emerald-100 text-emerald-700 border-0">승인 완료</Badge>
-  }
-  if (status === "rejected") {
-    return <Badge className="bg-red-100 text-red-700 border-0">거절</Badge>
-  }
-  return <Badge variant="outline">{status}</Badge>
+/* ── 카테고리 라벨 맵 ── */
+const CATEGORY_LABELS: Record<string, string> = {
+  place_rank:        "플레이스",
+  cafe_rank:         "카페",
+  blog_rank:         "블로그",
+  brand_blog:        "브랜드블로그",
+  press:             "언론",
+  cafe_infiltration: "카페침투",
 }
 
+const HEAD_ST = {
+  color: "var(--th-text-3)",
+  background: "var(--th-table-head)",
+  borderColor: "var(--th-row-border)",
+  fontSize: "12px",
+}
+
+/* ── 섹션 래퍼 ── */
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div
+      className="rounded-2xl border p-5 space-y-4"
+      style={{ background: "var(--th-card-bg)", borderColor: "var(--th-card-border)" }}
+    >
+      <h3 className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--th-text-3)" }}>
+        {title}
+      </h3>
+      {children}
+    </div>
+  )
+}
+
+/* ── 정보 필드 ── */
+function Field({ label, value }: { label: string; value?: string | null }) {
+  return (
+    <div>
+      <p className="text-[11px] mb-0.5" style={{ color: "var(--th-text-3)" }}>{label}</p>
+      <p className="text-sm font-medium" style={{ color: value ? "var(--th-text-1)" : "var(--th-text-3)" }}>
+        {value || "-"}
+      </p>
+    </div>
+  )
+}
+
+/* ── 파일 행 ── */
+function FileRow({ label, file }: { label: string; file?: { original_filename: string; id: number } | null }) {
+  return (
+    <div
+      className="flex items-center justify-between py-2.5 px-3 rounded-xl"
+      style={{ background: "var(--th-table-head)", border: "1px solid var(--th-row-border)" }}
+    >
+      <div className="flex items-center gap-2 min-w-0">
+        <div
+          className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
+          style={{ background: file ? "rgba(99,102,241,0.15)" : "var(--th-toggle-bg)" }}
+        >
+          <span className="text-[9px] font-bold" style={{ color: file ? "#818cf8" : "var(--th-text-3)" }}>FILE</span>
+        </div>
+        <div className="min-w-0">
+          <p className="text-[11px]" style={{ color: "var(--th-text-3)" }}>{label}</p>
+          <p className="text-xs font-medium truncate" style={{ color: file ? "var(--th-text-1)" : "var(--th-text-3)" }}>
+            {file ? file.original_filename : "첨부된 파일이 없어요."}
+          </p>
+        </div>
+      </div>
+      {file && (
+        <div className="flex items-center gap-1.5 flex-shrink-0 ml-3">
+          <button
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all hover:opacity-75"
+            style={{ background: "rgba(6,182,212,0.12)", color: "#06b6d4", border: "1px solid rgba(6,182,212,0.2)" }}
+          >
+            <Download className="w-3 h-3" /> 다운로드
+          </button>
+          <button
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all hover:opacity-75"
+            style={{ background: "rgba(255,255,255,0.05)", color: "var(--th-text-2)", border: "1px solid var(--th-toggle-border)" }}
+          >
+            <Eye className="w-3 h-3" /> 미리보기
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
+/* ── 스켈레톤 ── */
+function PageSkeleton() {
+  return (
+    <div className="space-y-4">
+      {[120, 200, 180, 240].map((h, i) => (
+        <div
+          key={i}
+          className="rounded-2xl border animate-pulse"
+          style={{ height: `${h}px`, background: "var(--th-card-bg)", borderColor: "var(--th-card-border)" }}
+        />
+      ))}
+    </div>
+  )
+}
+
+/* ── 메인 컴포넌트 ── */
 export function AdminAdvertiserDetail({ advertiserId }: { advertiserId: number }) {
   const router = useRouter()
 
-  const { data, isLoading, isError } = useQuery<AdminAdvertiserDetail>({
+  const { data, isLoading, isError } = useQuery({
     queryKey: ["admin", "advertiser", advertiserId],
     queryFn: () => getAdminAdvertiserDetail(advertiserId),
     staleTime: 30 * 1000,
   })
 
-  if (isLoading) {
+  /* 에러 */
+  if (isError || (!isLoading && !data)) {
     return (
-      <div className="p-8 bg-slate-50 min-h-screen flex items-center justify-center text-sm text-muted-foreground">
-        광고주 상세 정보를 불러오는 중입니다...
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+        <div
+          className="w-14 h-14 rounded-2xl flex items-center justify-center"
+          style={{ background: "rgba(248,113,113,0.1)", border: "1px solid rgba(248,113,113,0.2)" }}
+        >
+          <AlertTriangle className="w-7 h-7" style={{ color: "#f87171" }} />
+        </div>
+        <p className="text-sm" style={{ color: "#f87171" }}>광고주 정보를 불러오지 못했어요.</p>
+        <button
+          onClick={() => router.back()}
+          className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm transition-all hover:opacity-75"
+          style={{ background: "var(--th-toggle-bg)", color: "var(--th-text-2)", border: "1px solid var(--th-toggle-border)" }}
+        >
+          <ArrowLeft className="w-4 h-4" /> 이전 페이지로
+        </button>
       </div>
     )
   }
 
-  if (isError || !data) {
-    return (
-      <div className="p-8 bg-slate-50 min-h-screen flex flex-col items-center justify-center gap-4">
-        <p className="text-sm text-red-500">광고주 상세 정보를 불러오지 못했습니다.</p>
-        <Button variant="outline" onClick={() => router.back()}>
-          <ChevronLeft className="w-4 h-4 mr-1" /> 이전 페이지로
-        </Button>
-      </div>
-    )
-  }
-
-  const createdAt = data.created_at
-    ? new Date(data.created_at).toLocaleString("ko-KR")
+  const createdAt = data?.created_at
+    ? new Date(data.created_at).toLocaleDateString("ko-KR", { year: "numeric", month: "2-digit", day: "2-digit" })
     : "-"
 
-  const logoInitial = data.company_name?.[0] || data.name?.[0] || data.login_id?.[0] || "A"
-
   return (
-    <div className="p-8 bg-slate-50 min-h-screen">
-      {/* 1. 네비게이션 헤더 */}
-      <div className="flex items-center gap-2 mb-6">
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          className="text-muted-foreground hover:text-slate-900"
-          onClick={() => router.back()}
+    <div className="space-y-4 max-w-3xl">
+      {/* 헤더 */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => router.back()}
+            className="w-9 h-9 rounded-xl flex items-center justify-center transition-all hover:opacity-75 flex-shrink-0"
+            style={{ background: "var(--th-toggle-bg)", border: "1px solid var(--th-toggle-border)" }}
+          >
+            <ArrowLeft className="w-4 h-4" style={{ color: "var(--th-text-2)" }} />
+          </button>
+          <div>
+            <h1 className="text-xl font-bold" style={{ color: "var(--th-text-1)" }}>광고주 상세</h1>
+            <p className="text-xs mt-0.5" style={{ color: "var(--th-text-3)" }}>
+              광고주의 기본 정보와 담당 업체 목록을 확인할 수 있어요.
+            </p>
+          </div>
+        </div>
+        <button
+          onClick={() => router.push("/admin/advertisers")}
+          className="text-sm px-4 py-2 rounded-xl transition-all hover:opacity-75"
+          style={{ background: "var(--th-toggle-bg)", color: "var(--th-text-2)", border: "1px solid var(--th-toggle-border)" }}
         >
-          <ChevronLeft className="w-4 h-4 mr-1" />
-          목록으로
-        </Button>
-        <Separator orientation="vertical" className="h-4" />
-        <h1 className="text-2xl font-bold text-slate-900">광고주 상세 정보</h1>
+          ← 목록으로
+        </button>
       </div>
 
-      <div className="space-y-6">
-        {/* 2. 기본 정보 */}
-        <Card className="shadow-sm border-t-4 border-t-blue-500">
-          <CardHeader className="pb-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <Avatar className="h-16 w-16 border-2 border-white shadow-sm bg-blue-50">
-                  <AvatarFallback className="bg-blue-100 text-blue-600 text-xl font-bold">
-                    {logoInitial}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <CardTitle className="text-xl flex items-center gap-2">
-                    {data.name}
-                    {statusBadge(data.approval_status)}
-                  </CardTitle>
-                  <CardDescription className="mt-1 flex items-center gap-2">
-                    <span className="bg-blue-50 text-blue-700 px-2 py-0.5 rounded text-xs font-medium border border-blue-100">
-                      광고주
-                    </span>
-                    <span className="text-slate-400">|</span>
-                    <span>로그인 ID: {data.login_id}</span>
-                    <span className="text-slate-400">|</span>
-                    <span className="flex items-center gap-1 text-xs">
-                      <Calendar className="w-3 h-3" /> 가입일: {createdAt}
-                    </span>
-                  </CardDescription>
-                </div>
+      {isLoading ? <PageSkeleton /> : (
+        <>
+          {/* 기본 정보 */}
+          <Section title="기본 정보">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Field label="광고주명" value={data?.company_name} />
+              <Field label="가입일"   value={createdAt} />
+              <Field label="담당자"   value={data?.name} />
+              <Field label="이메일"   value={data?.email} />
+              <div className="sm:col-span-2">
+                <Field label="연락처" value={data?.phone} />
               </div>
             </div>
-          </CardHeader>
+          </Section>
 
-          <Separator />
-
-          <CardContent className="pt-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="space-y-1">
-                <div className="flex items-center gap-2 text-sm font-medium text-slate-500 mb-1">
-                  <Building2 className="w-4 h-4" /> 업체 / 법인명
-                </div>
-                <div className="text-base font-semibold text-slate-900">{data.company_name}</div>
-              </div>
-
-              <div className="space-y-1 flex items-center gap-2">
-                <Mail className="w-4 h-4 text-slate-500" />
-                <div>
-                  <p className="text-xs text-slate-500">이메일</p>
-                  <p className="text-sm font-medium text-slate-900">{data.email || "-"}</p>
-                </div>
-              </div>
-
-              <div className="space-y-1 flex items-center gap-2">
-                <Phone className="w-4 h-4 text-slate-500" />
-                <div>
-                  <p className="text-xs text-slate-500">연락처</p>
-                  <p className="text-sm font-medium text-slate-900">{data.phone || "-"}</p>
-                </div>
-              </div>
+          {/* 첨부 파일 */}
+          <Section title="첨부 파일">
+            <div className="space-y-2">
+              <FileRow label="사업자등록증" file={data?.business_license_file} />
+              <FileRow label="로고"         file={data?.logo_file} />
             </div>
+          </Section>
 
-            {/* 첨부 파일 */}
-            <div className="mt-8">
-              <h3 className="text-sm font-medium text-slate-900 mb-3">첨부 서류</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {data.business_license_file && (
-                  <div className="flex items-center justify-between p-3 border rounded-lg bg-slate-50/50">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-white rounded-md border shadow-sm">
-                        <FileText className="w-5 h-5 text-slate-500" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-slate-700">
-                          {data.business_license_file.original_filename}
-                        </p>
-                        <p className="text-xs text-slate-400">사업자등록증</p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {data.logo_file && (
-                  <div className="flex items-center justify-between p-3 border rounded-lg bg-slate-50/50">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-white rounded-md border shadow-sm">
-                        <ImageIcon className="w-5 h-5 text-slate-500" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-slate-700">
-                          {data.logo_file.original_filename}
-                        </p>
-                        <p className="text-xs text-slate-400">브랜드 로고</p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* 3. 매핑된 업체 목록 */}
-        <Card className="shadow-sm border-t-4 border-t-purple-500">
-          <CardHeader>
-            <CardTitle>매핑된 업체 목록</CardTitle>
-            <CardDescription>이 광고주와 매핑된 업체 리스트입니다.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {data.mapped_agencies && data.mapped_agencies.length > 0 ? (
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-slate-50/50">
-                    <TableHead>업체명</TableHead>
-                    <TableHead>법인명</TableHead>
-                    <TableHead className="w-[80px] text-right">ID</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {data.mapped_agencies.map((agency) => (
-                    <TableRow key={agency.agency_id}>
-                      <TableCell>{agency.agency_name}</TableCell>
-                      <TableCell>{agency.agency_company_name}</TableCell>
-                      <TableCell className="text-right text-xs text-muted-foreground">
-                        {agency.agency_id}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                아직 매핑된 업체가 없습니다.
+          {/* 담당 업체 목록 */}
+          <Section title="담당 업체 목록">
+            {!data?.mapped_agencies?.length ? (
+              <p className="text-sm py-4 text-center" style={{ color: "var(--th-text-3)" }}>
+                매핑된 업체가 없어요.
               </p>
+            ) : (
+              <div className="rounded-xl overflow-hidden border" style={{ borderColor: "var(--th-row-border)" }}>
+                <table className="w-full text-sm border-collapse">
+                  <thead>
+                    <tr style={HEAD_ST}>
+                      <th className="py-2.5 px-3 text-left font-medium">업체명</th>
+                      <th className="py-2.5 px-3 text-left font-medium hidden sm:table-cell">담당자</th>
+                      <th className="py-2.5 px-3 text-left font-medium hidden md:table-cell">연락처</th>
+                      <th className="py-2.5 px-3 text-left font-medium">이용 카테고리</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {data.mapped_agencies.map((agency) => (
+                      <tr
+                        key={agency.agency_id}
+                        className="border-t"
+                        style={{ borderColor: "var(--th-row-border)" }}
+                      >
+                        <td className="py-2.5 px-3">
+                          <p className="text-xs font-medium" style={{ color: "var(--th-text-1)" }}>
+                            {agency.agency_company_name}
+                          </p>
+                        </td>
+                        <td className="py-2.5 px-3 text-xs hidden sm:table-cell" style={{ color: "var(--th-text-2)" }}>
+                          {agency.agency_name}
+                        </td>
+                        <td className="py-2.5 px-3 text-xs hidden md:table-cell" style={{ color: "var(--th-text-3)" }}>
+                          {agency.phone || "-"}
+                        </td>
+                        <td className="py-2.5 px-3">
+                          {agency.categories?.length ? (
+                            <div className="flex flex-wrap gap-1">
+                              {agency.categories.map((cat) => (
+                                <span
+                                  key={cat}
+                                  className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium"
+                                  style={{ background: "rgba(99,102,241,0.12)", color: "#818cf8", border: "1px solid rgba(99,102,241,0.2)" }}
+                                >
+                                  {CATEGORY_LABELS[cat] ?? cat}
+                                </span>
+                              ))}
+                            </div>
+                          ) : (
+                            <span className="text-xs" style={{ color: "var(--th-text-3)" }}>-</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )}
-          </CardContent>
-        </Card>
-      </div>
+          </Section>
+        </>
+      )}
     </div>
   )
 }
-

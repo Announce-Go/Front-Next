@@ -52,6 +52,8 @@ export type AdminAdvertiserDetail = AdminAdvertiser & {
     agency_id: number
     agency_name: string
     agency_company_name: string
+    phone?: string
+    categories?: string[]
   }[]
 }
 

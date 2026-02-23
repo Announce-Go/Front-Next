@@ -6,34 +6,8 @@ import { usePathname, useRouter } from "next/navigation";
 import { logout } from "@/Features/apis/auth";
 import { useState } from "react";
 import { useAuthStore } from "@/store/AuthStore";
-
-
-const MENU_ITEMS = [
-  {
-    label: "플레이스 순위 체크",
-    href: "/agency/place-rank",
-  },
-  {
-    label: "카페 순위 체크",  
-    href: "/agency/cafe-rank",
-  },
-  {
-    label: "블로그 순위 체크",
-    href: "/agency/blog-rank",
-  },
-  {
-    label: "블로그 포스팅",
-    href: "/agency/blog-posting",
-  },
-  {
-    label: "언론기사",
-    href: "/agency/press",
-  },
-  {
-    label: "카페 침투",
-    href: "/agency/cafe-infiltration",
-  }
-]
+import { category } from "@/constants/category";
+import { cn } from "@/lib/utils";
 
 export function UserSideBar() {
   const pathname = usePathname()
@@ -72,22 +46,42 @@ export function UserSideBar() {
         </p>
       </div>
 
-      {/* 2. 내비게이션 메뉴 */}
+      {/* 2. 내비게이션 메뉴 - role(agency)에 맞는 category.agency 사용 */}
       <nav className="flex-1 overflow-y-auto p-4">
-        <ul className="space-y-1">
-          {MENU_ITEMS.map((item) => (
-            <li key={item.label}>
-              <Link 
-                href={item.href}
-                className={`block px-3 py-2 text-sm font-medium text-gray-600 rounded-md hover:bg-gray-50 hover:text-gray-900 transition-colors ${ pathname === item.href ? `bg-gray-200 text-gray-900` : ""}`}
-              >
-                {item.label}
-              </Link>
-            </li>
-          ))}
-          
-          
-        </ul>
+        <div className="space-y-5">
+          {category.agency.map((section: any, sectionIdx: number) => {
+            const sectionKey = Object.keys(section)[0]
+            const items = Object.values(section[sectionKey]) as any[]
+            return (
+              <div key={sectionIdx}>
+                <h3 className="px-2 mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-slate-500">
+                  {sectionKey}
+                </h3>
+                <ul className="space-y-0.5">
+                  {items.map((item: any, itemIdx: number) => {
+                    const isActive = pathname === item.href
+                    return (
+                      <li key={itemIdx}>
+                        <Link
+                          href={item.href}
+                          className={cn(
+                            "flex items-center gap-2.5 px-3 py-2 rounded-xl text-[13px] font-medium transition-all duration-200",
+                            isActive ? "bg-gray-200 text-gray-900" : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                          )}
+                        >
+                          <span className={isActive ? "text-orange-500" : "text-gray-500"}>
+                            {item?.icon}
+                          </span>
+                          {item.label}
+                        </Link>
+                      </li>
+                    )
+                  })}
+                </ul>
+              </div>
+            )
+          })}
+        </div>
       </nav>
       
       {/* 3. 하단 영역 */}

@@ -1,10 +1,10 @@
 import { AdminAdvertiserDetail } from "@/components/admin/AdminAdvertiserDetail"
 
 type PageProps = {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
-export default function AdminAdvertiserDetailPage({ params }: PageProps) {
-  const advertiserId = Number(params.id)
-  return <AdminAdvertiserDetail advertiserId={advertiserId} />
+export default async function AdminAdvertiserDetailPage({ params }: PageProps) {
+  const { id } = await params
+  return <AdminAdvertiserDetail advertiserId={Number(id)} />
 }

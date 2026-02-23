@@ -1,10 +1,10 @@
 import { AdminSignupRequestDetail } from "@/components/admin/AdminSignupRequestDetail"
 
 type PageProps = {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
-export default function AdminSignupRequestDetailPage({ params }: PageProps) {
-  const id = Number(params.id)
-  return <AdminSignupRequestDetail userId={id} />
+export default async function AdminSignupRequestDetailPage({ params }: PageProps) {
+  const { id } = await params
+  return <AdminSignupRequestDetail userId={Number(id)} />
 }

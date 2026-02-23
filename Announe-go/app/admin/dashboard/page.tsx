@@ -1,155 +1,108 @@
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-
-import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination"
-
-import { Badge } from "@/components/ui/badge"
-
-import { 
-  BarChart3, 
-  PenTool, 
-  Users, 
-  Building2, 
-  Clock, 
-  MapPin, 
-  Coffee, 
-  Search, 
-  MessageCircle, 
+  BarChart3,
+  PenTool,
+  MapPin,
+  Coffee,
+  Search,
+  MessageCircle,
   Newspaper,
-  ArrowUpRight,
-  ArrowDownRight
 } from "lucide-react"
 
 import { AdminDashboardSignupTable } from "@/components/admin/AdminDashboardSignupTable"
 import { AdminDashboardAdvertiserList } from "@/components/admin/AdminDashboardAdvertiserList"
 import { AdminDashboardAgencyList } from "@/components/admin/AdminDashboardAgencyList"
 
+const CATEGORIES = [
+  { label: "플레이스 순위", count: "125건", icon: MapPin,        color: "#10b981", glow: "rgba(16,185,129,0.15)" },
+  { label: "브랜드 블로그", count: "456건", icon: PenTool,       color: "#ec4899", glow: "rgba(236,72,153,0.15)" },
+  { label: "카페 글 순위",  count: "85건",  icon: Coffee,        color: "#f97316", glow: "rgba(249,115,22,0.15)" },
+  { label: "블로그 순위",   count: "203건", icon: Search,        color: "#14b8a6", glow: "rgba(20,184,166,0.15)" },
+  { label: "카페 침투",     count: "134건", icon: MessageCircle, color: "#818cf8", glow: "rgba(99,102,241,0.15)" },
+  { label: "언론 기사",     count: "35건",  icon: Newspaper,     color: "#94a3b8", glow: "rgba(148,163,184,0.1)" },
+]
+
 function AdminDashboardPage() {
   return (
-    <div className="p-8 bg-slate-50 min-h-screen"> 
-      
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900">Dashboard</h1>
-          <p className="text-muted-foreground mt-1">오늘의 마케팅 현황을 한눈에 확인하세요.</p>
-        </div>
+    <div className="space-y-6">
+      {/* 헤딩 */}
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight" style={{ color: "var(--th-text-1)" }}>
+          대시보드
+        </h1>
+        <p className="text-sm mt-1" style={{ color: "var(--th-text-3)" }}>
+          오늘의 마케팅 현황을 한눈에 확인해 보세요.
+        </p>
       </div>
 
-      {/* 2. 승인 대기 목록 (배지에 컬러 적용) */}
-      <section className="mb-8">
-        <Card className="shadow-sm border-t-4 border-t-indigo-500">
-          <CardHeader>
-            <CardTitle>승인 대기 목록</CardTitle>
-            <CardDescription>최근 등록된 업체 및 광고주 승인 요청입니다.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <AdminDashboardSignupTable />
-          </CardContent>
-        </Card>
+      {/* 승인 대기 목록 */}
+      <section>
+        <div
+          className="rounded-2xl border p-5"
+          style={{
+            background: "var(--th-card-bg)",
+            borderColor: "var(--th-card-border)",
+          }}
+        >
+          <div className="mb-4">
+            <h2 className="text-base font-semibold" style={{ color: "var(--th-text-1)" }}>
+              승인 대기 목록
+            </h2>
+            <p className="text-xs mt-0.5" style={{ color: "var(--th-text-3)" }}>
+              최근 등록된 업체 및 광고주 승인 요청이에요.
+            </p>
+          </div>
+          <AdminDashboardSignupTable />
+        </div>
       </section>
 
-      {/* 3. 광고주 목록 리스트 */}
-      <section className="mb-8">
+      {/* 광고주 목록 */}
+      <section>
         <AdminDashboardAdvertiserList />
       </section>
 
-      {/* 4. 업체 목록 리스트 */}
-      <section className="mb-8">
+      {/* 업체 목록 */}
+      <section>
         <AdminDashboardAgencyList />
       </section>
 
-      {/* 5. 카테고리별 현황 (Border-Left 포인트 컬러 적용) */}
+      {/* 카테고리별 현황 */}
       <section>
-        <h2 className="text-lg font-semibold mb-4 tracking-tight flex items-center gap-2">
-          <BarChart3 className="w-5 h-5 text-slate-500"/>
-          카테고리별 현황
-        </h2>
-        
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          
-          {/* 1. 플레이스 (Green Theme) */}
-          <Card className="border-l-4 border-l-green-500 shadow-sm hover:shadow-md transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-slate-600">플레이스 순위</CardTitle>
-              <MapPin className="h-4 w-4 text-green-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-slate-900">125건</div>
-            </CardContent>
-          </Card>
-
-          {/* 2. 브랜드 블로그 (Pink/Orange Theme) */}
-          <Card className="border-l-4 border-l-pink-500 shadow-sm hover:shadow-md transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-slate-600">브랜드 블로그</CardTitle>
-              <PenTool className="h-4 w-4 text-pink-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-slate-900">456건</div>
-            </CardContent>
-          </Card>
-
-          {/* 3. 카페 글 순위 (Red Theme) */}
-          <Card className="border-l-4 border-l-red-500 shadow-sm hover:shadow-md transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-slate-600">카페 글 순위</CardTitle>
-              <Coffee className="h-4 w-4 text-red-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-slate-900">85건</div>
-            </CardContent>
-          </Card>
-
-          {/* 4. 블로그 순위 (Teal Theme) */}
-          <Card className="border-l-4 border-l-teal-500 shadow-sm hover:shadow-md transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-slate-600">블로그 순위</CardTitle>
-              <Search className="h-4 w-4 text-teal-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-slate-900">203건</div>
-            </CardContent>
-          </Card>
-
-          {/* 5. 카페 침투 (Indigo Theme) */}
-          <Card className="border-l-4 border-l-indigo-500 shadow-sm hover:shadow-md transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-slate-600">카페 침투</CardTitle>
-              <MessageCircle className="h-4 w-4 text-indigo-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-slate-900">134건</div>
-            </CardContent>
-          </Card>
-
-          {/* 6. 언론 기사 (Slate/Dark Theme) */}
-          <Card className="border-l-4 border-l-slate-700 shadow-sm hover:shadow-md transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-slate-600">언론 기사</CardTitle>
-              <Newspaper className="h-4 w-4 text-slate-700" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-slate-900">35건</div>
-            </CardContent>
-          </Card>
-
+        <div className="flex items-center gap-2 mb-4">
+          <BarChart3 className="w-4 h-4" style={{ color: "#6366f1" }} />
+          <h2 className="text-base font-semibold" style={{ color: "var(--th-text-1)" }}>
+            카테고리별 현황
+          </h2>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {CATEGORIES.map(({ label, count, icon: Icon, color, glow }) => (
+            <div
+              key={label}
+              className="rounded-2xl border p-4 transition-all duration-300 hover:scale-[1.02]"
+              style={{
+                background: "var(--th-card-bg)",
+                borderColor: "var(--th-card-border)",
+              }}
+            >
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-xs font-medium" style={{ color: "var(--th-text-2)" }}>
+                  {label}
+                </p>
+                <div
+                  className="w-8 h-8 rounded-lg flex items-center justify-center"
+                  style={{ background: glow }}
+                >
+                  <Icon className="w-4 h-4" style={{ color }} />
+                </div>
+              </div>
+              <p className="text-2xl font-bold" style={{ color: "var(--th-text-1)" }}>
+                {count}
+              </p>
+            </div>
+          ))}
         </div>
       </section>
     </div>
-  );
+  )
 }
 
-export default AdminDashboardPage;
+export default AdminDashboardPage

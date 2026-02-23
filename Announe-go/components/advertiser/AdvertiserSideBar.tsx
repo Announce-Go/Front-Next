@@ -4,22 +4,18 @@ import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { logout } from "@/Features/apis/auth"
-import { setAccessToken } from "@/Featchs/api/http"
 import { useAuthStore } from "@/store/AuthStore"
 import { useState } from "react"
-
-const MENU_ITEMS = [
-  {
-    label: "매핑된 업체 목록",
-    href: "/advertiser/agencies",
-  },
-]
+import { category } from "@/constants/category"
+import { cn } from "@/lib/utils"
 
 export function AdvertiserSideBar() {
   const pathname = usePathname()
   const router = useRouter()
   const clearAuth = useAuthStore((s) => s.clearAuth)
   const [isLoggingOut, setIsLoggingOut] = useState(false)
+
+  const menuItems = category.advertisers.filter((item) => item.isView)
 
   const onLogout = async () => {
     if (isLoggingOut) return
@@ -44,14 +40,16 @@ export function AdvertiserSideBar() {
 
       <nav className="flex-1 overflow-y-auto p-4">
         <ul className="space-y-1">
-          {MENU_ITEMS.map((item) => (
+          {menuItems.map((item) => (
             <li key={item.label}>
               <Link
                 href={item.href}
-                className={`block px-3 py-2 text-sm font-medium text-gray-600 rounded-md hover:bg-gray-50 hover:text-gray-900 transition-colors ${
-                  pathname === item.href ? "bg-gray-200 text-gray-900" : ""
-                }`}
+                className={cn(
+                  "flex items-center gap-2.5 block px-3 py-2 text-sm font-medium rounded-md transition-colors",
+                  pathname === item.href ? "bg-gray-200 text-gray-900" : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                )}
               >
+                {item.icon ? <span>{item.icon}</span> : null}
                 {item.label}
               </Link>
             </li>

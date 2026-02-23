@@ -6,11 +6,16 @@ import { RealtimeRankCard } from "@/Features/place-rank/ui/RealtimeRankCard"
 import { PlaceRankTrackingCard } from "@/Features/place-rank/ui/PlaceRankTrackingCard"
 
 import { 
-  MapPin, 
-  PauseCircle
+  MapPin
 } from "lucide-react"
 
-export default function AgencyPlaceRankPage() {
+type SearchParams = Record<string, string | string[] | undefined>
+
+export default function AgencyPlaceRankPage({
+  searchParams,
+}: {
+  searchParams?: SearchParams
+}) {
   return (
     <div className="p-8 bg-slate-50 min-h-screen">
       
@@ -33,7 +38,7 @@ export default function AgencyPlaceRankPage() {
         <RealtimeRankCard />
 
         {/* 2. 추적 목록 (월보장) */}
-        <PlaceRankTrackingCard />
+        <PlaceRankTrackingCard searchParams={searchParams} />
       </div>
     </div>
   )

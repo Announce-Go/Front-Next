@@ -1,8 +1,8 @@
 // ./Featchs/api/http.ts (또는 shared/api/http.ts)
 import axios, { AxiosInstance } from "axios";
+import { useAuthStore } from "@/store/AuthStore";
 
-//const BACKEND_ORIGIN = "http://158.180.73.169:8081";
-const BACKEND_ORIGIN = "https://an-5627ae19ff9443ebbad00f985814a30b.ecs.us-east-1.on.aws";
+const BACKEND_ORIGIN = process.env.NEXT_PUBLIC_BACKEND_URL ?? "";
 
 
 
@@ -11,6 +11,30 @@ export const http: AxiosInstance = axios.create({
   timeout: 30000,
   withCredentials: true,
 });
+
+/* ── 세션 만료 처리 (401 response interceptor) ── */
+let isRedirectingToLogin = false
+
+http.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const status = error?.response?.status
+    const isLoginRequest = error?.config?.url?.includes("/auth/login")
+
+    if (
+      typeof window !== "undefined" &&
+      !isRedirectingToLogin &&
+      status === 401 &&
+      !isLoginRequest
+    ) {
+      isRedirectingToLogin = true
+      useAuthStore.getState().clearAuth()
+      window.location.href = "/login?expired=true"
+    }
+
+    return Promise.reject(error)
+  }
+)
 
 http.interceptors.request.use(async (config) => {
   if (typeof window === "undefined") {

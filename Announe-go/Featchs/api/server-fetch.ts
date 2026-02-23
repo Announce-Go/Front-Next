@@ -2,8 +2,7 @@
 import { cookies } from "next/headers";
 
 
-//const BACKEND_URL = "http://158.180.73.169:8081";
-const BACKEND_URL = "https://an-5627ae19ff9443ebbad00f985814a30b.ecs.us-east-1.on.aws";
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL ?? "";
 
 export async function serverFetch<T>(url: string, options: RequestInit = {}): Promise<T> {
   try {

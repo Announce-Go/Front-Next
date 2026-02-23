@@ -1,23 +1,21 @@
 import { UserSideBar } from "@/components/user/UserSideBar"
 import { AdminSideBar } from "@/components/admin/AdminSideBar"
-import { MasterSideBar } from "@/components/master/MasterSideBar"
 import { AdvertiserSideBar } from "@/components/advertiser/AdvertiserSideBar"
 
-const sideModule = {
-  USER: <UserSideBar />,
-  user: <UserSideBar />,
-  AGENCY: <UserSideBar />,
-  agency: <UserSideBar />,
-  ADMIN: <AdminSideBar />,
-  admin: <AdminSideBar />,
-  MASTER: <MasterSideBar />,
-  master: <MasterSideBar />,
-  ADVERTISER: <AdvertiserSideBar />,
-  advertiser: <AdvertiserSideBar />,
+/**
+ * 로그인 응답 role 값: "admin" | "agency" | "advertiser"
+ * - admin      → AdminSideBar
+ * - agency     → UserSideBar (대행사/업체 전용)
+ * - advertiser → AdvertiserSideBar
+ */
+const createSideBar = (role: string) => {
+  const r = role?.toLowerCase()
+
+  if (r === "admin")      return <AdminSideBar />
+  if (r === "agency")     return <UserSideBar />
+  if (r === "advertiser") return <AdvertiserSideBar />
+
+  return null
 }
 
-const createSideBar = (role: string) => {
-  return sideModule[role as keyof typeof sideModule];
-};
-
-export { createSideBar };
+export { createSideBar }
