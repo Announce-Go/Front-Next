@@ -1,300 +1,591 @@
-'use client'
-import { useState } from "react"
+"use client"
+
+import { useState, useEffect, Suspense } from "react"
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
+import { useRouter, usePathname, useSearchParams } from "next/navigation"
+import { ChevronLeft, ChevronRight, Plus, Pencil, Trash2, X } from "lucide-react"
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
+  getPressMonthlyList,
+  createPressArticle,
+  updatePressArticle,
+  deletePressArticle,
+} from "@/Features/apis/admin/press"
+import type { PressArticle } from "@/Features/apis/admin/press"
+import { getAdminAdvertisers } from "@/Features/apis/admin/advertisers"
 
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+/* ── 날짜 유틸 ── */
+const DAY_LABELS = ["일", "월", "화", "수", "목", "금", "토"]
 
-import { 
-  Newspaper, 
-  ChevronLeft, 
-  ChevronRight, 
-  Calendar as CalendarIcon,
-  Clock,
-  ExternalLink,
-  MoreHorizontal,
-  Plus,
-  Megaphone
-} from "lucide-react"
+function buildCalendarDays(year: number, month: number) {
+  const firstDay  = new Date(year, month - 1, 1).getDay()
+  const lastDate  = new Date(year, month, 0).getDate()
+  const cells: (number | null)[] = []
+  for (let i = 0; i < firstDay; i++) cells.push(null)
+  for (let d = 1; d <= lastDate; d++) cells.push(d)
+  while (cells.length % 7 !== 0) cells.push(null)
+  return cells
+}
 
-export default function PressArticlePage() {
-  // 1. 현재 보고 있는 달력의 기준 날짜 (기본값: 2024년 12월 1일)
-  const getFullYear = new Date()
-  const yyyy = getFullYear.getFullYear();
-  const mm = getFullYear.getMonth();
-  const dd = getFullYear.getDate();
+function toYYYYMM(year: number, month: number) {
+  return `${year}-${String(month).padStart(2, "0")}`
+}
 
-  const [currentDate, setCurrentDate] = useState(new Date(yyyy, mm, dd)); 
-  
-  // 2. 사용자가 클릭해서 선택한 날짜 (일)
-  const [selectedDay, setSelectedDay] = useState<number | null>(dd);
+function toYYYYMMDD(year: number, month: number, day: number) {
+  return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`
+}
 
-  // 달력 계산 헬퍼 함수
-  const year = currentDate.getFullYear();
-  const month = currentDate.getMonth(); // 0(1월) ~ 11(12월)
+function formatDisplayDate(dateStr: string) {
+  const d = new Date(dateStr + "T00:00:00")
+  return d.toLocaleDateString("ko-KR", { month: "long", day: "numeric" })
+}
 
-  // 이번 달의 총 일수 (예: 12월은 31일)
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-  
-  // 이번 달 1일의 요일 (0:일요일 ~ 6:토요일) -> 빈 칸 채우기용
-  const startDayOfWeek = new Date(year, month, 1).getDay();
+function formatShort(dateStr: string) {
+  const d = new Date(dateStr + "T00:00:00")
+  return `${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`
+}
 
-  // 날짜 배열 생성
-  const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
-  const emptyDays = Array.from({ length: startDayOfWeek }, (_, i) => i);
+/* ── 폼 타입 ── */
+type FormState =
+  | null
+  | { mode: "create" }
+  | { mode: "edit"; id: number; title: string; content: string; url: string; advertiser_id: number }
 
-  // 이전 달로 이동
-  const handlePrevMonth = () => {
-    setCurrentDate(new Date(year, month - 1, 1));
-    setSelectedDay(null); // 달이 바뀌면 선택 초기화
-  };
+/* ── HEAD_ST ── */
+const HEAD_ST = {
+  color: "var(--th-text-3)",
+  background: "var(--th-table-head)",
+  fontSize: "12px",
+}
 
-  // 다음 달로 이동
-  const handleNextMonth = () => {
-    setCurrentDate(new Date(year, month + 1, 1));
-    setSelectedDay(null); // 달이 바뀌면 선택 초기화
-  };
+function PressContent() {
+  const router       = useRouter()
+  const pathname     = usePathname()
+  const searchParams = useSearchParams()
 
-  // --- 더미 데이터 (실제로는 API에서 year, month로 조회해야 함) ---
-  // 데모를 위해 모든 달에 데이터가 있다고 가정하거나, 특정 달에만 표시하도록 필터링 가능
-  // 여기서는 편의상 "날짜(day)"만 매칭하여 보여줍니다.
-  const allArticles = [
-    { id: 1, day: 5, title: "A한의원, 겨울철 면역력 관리법 소개", media: "데일리뉴스", status: "published" },
-    { id: 2, day: 12, title: "B병원, 최신 의료장비 도입 기념식", media: "메디컬타임즈", status: "published" },
-    { id: 3, day: 16, title: "강남한의원, 고객 감사 이벤트 진행", media: "시사매거진", status: "published" },
-    { id: 4, day: 16, title: "[칼럼] 만성피로, 방치하면 위험", media: "건강일보", status: "scheduled" },
-    { id: 5, day: 20, title: "C클리닉, 브랜드 대상 수상", media: "한국경제", status: "pending" },
-    { id: 6, day: 25, title: "크리스마스 건강 관리 팁", media: "라이프스타일", status: "pending" },
-  ];
+  /* URL 파라미터 — month는 필수값이므로 없으면 즉시 현재 월로 redirect */
+  const today = new Date()
+  const defaultMonth = toYYYYMM(today.getFullYear(), today.getMonth() + 1)
+  const rawMonth     = searchParams.get("month")
+  const selectedDate = searchParams.get("date") ?? null
 
-  // 현재 선택된 날짜의 기사 필터링
-  const selectedArticles = selectedDay 
-    ? allArticles.filter(a => a.day === selectedDay) 
-    : [];
+  useEffect(() => {
+    if (!rawMonth) {
+      const params = new URLSearchParams(window.location.search)
+      params.set("month", defaultMonth)
+      router.replace(`${pathname}?${params.toString()}`)
+    }
+  }, [rawMonth, defaultMonth, pathname, router])
+
+  const currentMonth = rawMonth ?? defaultMonth
+  const [year, month] = currentMonth.split("-").map(Number)
+
+  /* 로컬 상태 */
+  const [formState, setFormState] = useState<FormState>(null)
+  const [formTitle, setFormTitle]               = useState("")
+  const [formContent, setFormContent]           = useState("")
+  const [formUrl, setFormUrl]                   = useState("")
+  const [formAdvertiserId, setFormAdvertiserId] = useState<number | "">("")
+
+  const queryClient = useQueryClient()
+
+  /* URL 업데이트 */
+  const updateURL = (updates: Record<string, string>) => {
+    const params = new URLSearchParams(window.location.search)
+    Object.entries(updates).forEach(([k, v]) => {
+      if (v) params.set(k, v)
+      else params.delete(k)
+    })
+    const qs = params.toString()
+    router.replace(qs ? `${pathname}?${qs}` : pathname)
+  }
+
+  /* 월 이동 */
+  const moveMonth = (dir: -1 | 1) => {
+    const d = new Date(year, month - 1 + dir, 1)
+    updateURL({ month: toYYYYMM(d.getFullYear(), d.getMonth() + 1), date: "" })
+    setFormState(null)
+  }
+
+  /* 날짜 클릭 */
+  const handleDayClick = (day: number) => {
+    const dateStr = toYYYYMMDD(year, month, day)
+    updateURL({ date: dateStr })
+    setFormState(null)
+  }
+
+  /* 월별 기사 조회 */
+  const { data: monthlyData, isLoading: monthlyLoading } = useQuery({
+    queryKey: ["admin", "press", year, month],
+    queryFn: () => getPressMonthlyList(year, month),
+    enabled: !!year && !!month,
+    staleTime: 30 * 1000,
+  })
+
+  /* 날짜별 건수 맵 */
+  const countMap: Record<string, number> = {}
+  monthlyData?.items?.forEach((a) => {
+    countMap[a.article_date] = (countMap[a.article_date] ?? 0) + 1
+  })
+
+  /* 선택 날짜 기사 목록 */
+  const selectedArticles: PressArticle[] = selectedDate
+    ? (monthlyData?.items ?? []).filter((a) => a.article_date === selectedDate)
+    : []
+
+  /* 광고주 목록 (승인된) */
+  const { data: advertiserData } = useQuery({
+    queryKey: ["admin", "advertisers", "approved-simple"],
+    queryFn: () => getAdminAdvertisers({ approval_status: "approved", page_size: 200 }),
+    staleTime: 5 * 60 * 1000,
+  })
+  const advertisers = advertiserData?.items ?? []
+
+  /* 폼 열기 */
+  const openCreate = () => {
+    setFormTitle("")
+    setFormContent("")
+    setFormUrl("")
+    setFormAdvertiserId("")
+    setFormState({ mode: "create" })
+  }
+
+  const openEdit = (article: PressArticle) => {
+    setFormTitle(article.title)
+    setFormContent(article.content)
+    setFormUrl(article.url)
+    setFormAdvertiserId(article.advertiser_id)
+    setFormState({ mode: "edit", id: article.id, title: article.title, content: article.content, url: article.url, advertiser_id: article.advertiser_id })
+  }
+
+  const closeForm = () => setFormState(null)
+
+  /* mutations */
+  const invalidate = () => {
+    queryClient.invalidateQueries({ queryKey: ["admin", "press", year, month] })
+  }
+
+  const createMutation = useMutation({
+    mutationFn: () => createPressArticle({
+      advertiser_id: Number(formAdvertiserId),
+      article_date:  selectedDate!,
+      title:         formTitle.trim(),
+      content:       formContent.trim(),
+      url:           formUrl.trim(),
+    }),
+    onSuccess: () => { invalidate(); closeForm() },
+  })
+
+  const updateMutation = useMutation({
+    mutationFn: () => {
+      const s = formState as { mode: "edit"; id: number }
+      return updatePressArticle(s.id, {
+        advertiser_id: Number(formAdvertiserId),
+        title:         formTitle.trim(),
+        content:       formContent.trim(),
+        url:           formUrl.trim(),
+      })
+    },
+    onSuccess: () => { invalidate(); closeForm() },
+  })
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => deletePressArticle(id),
+    onSuccess: () => invalidate(),
+  })
+
+  const handleSave = () => {
+    if (!formTitle.trim() || !formContent.trim() || !formAdvertiserId) return
+    if (formState?.mode === "create") createMutation.mutate()
+    else if (formState?.mode === "edit") updateMutation.mutate()
+  }
+
+  const handleDelete = (id: number) => {
+    if (!confirm("기사를 삭제하시겠어요?")) return
+    deleteMutation.mutate(id)
+  }
+
+  const isPending = createMutation.isPending || updateMutation.isPending
+
+  /* 캘린더 */
+  const calendarDays = buildCalendarDays(year, month)
 
   return (
-    <div className="p-8 bg-slate-50 min-h-screen">
-      
+    <div className="space-y-5">
       {/* 헤더 */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
-            <Newspaper className="w-6 h-6 text-slate-700" />
-            언론 기사 관리
-          </h1>
-          <p className="text-muted-foreground mt-1">월별 보도자료 배포 일정 및 송출 현황을 캘린더로 관리합니다.</p>
-        </div>
-        <Button className="bg-slate-900 text-white hover:bg-slate-800">
-          <Plus className="w-4 h-4 mr-2" />
-          기사 등록
-        </Button>
+      <div>
+        <h1 className="text-xl font-bold" style={{ color: "var(--th-text-1)" }}>언론 기사 관리</h1>
+        <p className="text-xs mt-0.5" style={{ color: "var(--th-text-3)" }}>
+          날짜를 클릭하여 기사를 조회하고 등록·수정·삭제할 수 있습니다.
+        </p>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        
-        {/* 메인 캘린더 (좌측 2/3) */}
-        <Card className="xl:col-span-2 shadow-sm border-t-4 border-t-slate-600">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                {/* 동적 날짜 표시 */}
-                <CardTitle className="text-xl">
-                  {year}년 {month + 1}월
-                </CardTitle>
-                <div className="flex items-center gap-1 bg-slate-100 rounded-md p-0.5">
-                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handlePrevMonth}>
-                    <ChevronLeft className="w-4 h-4" />
-                  </Button>
-                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleNextMonth}>
-                    <ChevronRight className="w-4 h-4" />
-                  </Button>
-                </div>
-              </div>
-              <div className="flex gap-2 text-xs">
-                 <div className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-slate-900"></span>송출완료</div>
-                 <div className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-orange-500"></span>예약대기</div>
-              </div>
+      {/* ━━━ 캘린더 ━━━ */}
+      <div
+        className="rounded-2xl border overflow-hidden"
+        style={{ background: "var(--th-card-bg)", borderColor: "var(--th-card-border)" }}
+      >
+        {/* 월 헤더 */}
+        <div
+          className="flex items-center justify-between px-5 py-4 border-b"
+          style={{ borderColor: "var(--th-row-border)" }}
+        >
+          <button
+            onClick={() => moveMonth(-1)}
+            className="w-8 h-8 rounded-lg flex items-center justify-center transition-all hover:opacity-75"
+            style={{ background: "var(--th-toggle-bg)", border: "1px solid var(--th-toggle-border)" }}
+          >
+            <ChevronLeft className="w-4 h-4" style={{ color: "var(--th-text-2)" }} />
+          </button>
+          <span className="text-sm font-semibold" style={{ color: "var(--th-text-1)" }}>
+            {year}년 {month}월
+          </span>
+          <button
+            onClick={() => moveMonth(1)}
+            className="w-8 h-8 rounded-lg flex items-center justify-center transition-all hover:opacity-75"
+            style={{ background: "var(--th-toggle-bg)", border: "1px solid var(--th-toggle-border)" }}
+          >
+            <ChevronRight className="w-4 h-4" style={{ color: "var(--th-text-2)" }} />
+          </button>
+        </div>
+
+        {/* 요일 헤더 */}
+        <div className="grid grid-cols-7 border-b" style={{ borderColor: "var(--th-row-border)" }}>
+          {DAY_LABELS.map((label, i) => (
+            <div
+              key={label}
+              className="py-2 text-center text-[11px] font-medium"
+              style={{
+                color: i === 0 ? "#f87171" : i === 6 ? "#60a5fa" : "var(--th-text-3)",
+                background: "var(--th-table-head)",
+              }}
+            >
+              {label}
             </div>
-          </CardHeader>
-          <CardContent>
-            {/* 요일 헤더 */}
-            <div className="grid grid-cols-7 mb-2 text-center">
-              {['일', '월', '화', '수', '목', '금', '토'].map((dayName, i) => (
-                <div key={dayName} className={`text-sm font-semibold py-2 ${i === 0 ? 'text-red-500' : i === 6 ? 'text-blue-500' : 'text-slate-500'}`}>
-                  {dayName}
-                </div>
-              ))}
-            </div>
+          ))}
+        </div>
 
-            {/* 날짜 그리드 */}
-            <div className="grid grid-cols-7 gap-2">
-              {/* 1. 지난달 빈칸 채우기 */}
-              {emptyDays.map(empty => (
-                <div key={`empty-${empty}`} className="h-24 sm:h-32 bg-slate-50/30 rounded-lg" />
-              ))}
-
-              {/* 2. 이번달 날짜 채우기 */}
-              {days.map(day => {
-                const dayArticles = allArticles.filter(a => a.day === day);
-                const isSelected = selectedDay === day;
-                
-                // 오늘 날짜 하이라이트 (실제 오늘 날짜와 비교)
-                const today = new Date();
-                const isToday = 
-                  today.getDate() === day && 
-                  today.getMonth() === month && 
-                  today.getFullYear() === year;
-
+        {/* 날짜 그리드 */}
+        {monthlyLoading ? (
+          <div className="py-10 text-center text-sm" style={{ color: "var(--th-text-3)" }}>
+            로딩 중...
+          </div>
+        ) : (
+          <div className="grid grid-cols-7">
+            {calendarDays.map((day, idx) => {
+              if (day === null) {
                 return (
-                  <div 
-                    key={day}
-                    onClick={() => setSelectedDay(day)}
-                    className={`
-                      relative h-24 sm:h-32 p-2 border rounded-lg cursor-pointer transition-all hover:shadow-md
-                      ${isSelected 
-                        ? 'border-2 border-slate-900 bg-slate-50 ring-2 ring-slate-200 ring-offset-2 z-10' 
-                        : 'border-slate-100 bg-white hover:border-slate-300'
-                      }
-                    `}
+                  <div
+                    key={`empty-${idx}`}
+                    className="min-h-[56px] border-b border-r"
+                    style={{ borderColor: "var(--th-row-border)" }}
+                  />
+                )
+              }
+              const dateStr = toYYYYMMDD(year, month, day)
+              const count   = countMap[dateStr] ?? 0
+              const isSelected = dateStr === selectedDate
+              const isToday = dateStr === toYYYYMMDD(today.getFullYear(), today.getMonth() + 1, today.getDate())
+              const col = idx % 7
+
+              return (
+                <button
+                  key={dateStr}
+                  onClick={() => handleDayClick(day)}
+                  className="min-h-[56px] border-b border-r flex flex-col items-center pt-2 pb-1 gap-1 transition-all"
+                  style={{
+                    borderColor: "var(--th-row-border)",
+                    background: isSelected
+                      ? "rgba(99,102,241,0.1)"
+                      : undefined,
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isSelected) e.currentTarget.style.background = "var(--th-row-hover)"
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isSelected) e.currentTarget.style.background = ""
+                  }}
+                >
+                  {/* 날짜 숫자 */}
+                  <span
+                    className="text-xs font-medium w-6 h-6 flex items-center justify-center rounded-full"
+                    style={{
+                      color: (isSelected || isToday) ? "white" : col === 0 ? "#f87171" : col === 6 ? "#60a5fa" : "var(--th-text-1)",
+                      background: isSelected ? "#6366f1" : isToday ? "#06b6d4" : undefined,
+                      fontWeight: isToday || isSelected ? 700 : undefined,
+                    }}
                   >
-                    <div className="flex justify-between items-start">
-                      <span className={`
-                        text-sm font-medium w-6 h-6 flex items-center justify-center rounded-full
-                        ${isToday ? 'bg-slate-900 text-white' : 'text-slate-700'}
-                      `}>
-                        {day}
-                      </span>
-                      {dayArticles.length > 0 && (
-                        <Badge variant="secondary" className="text-[10px] h-5 px-1.5 bg-slate-100 text-slate-600">
-                          {dayArticles.length}건
-                        </Badge>
-                      )}
-                    </div>
-                    
-                    {/* 기사 간략 표시 (최대 2개) */}
-                    <div className="mt-2 space-y-1">
-                      {dayArticles.slice(0, 2).map((article, idx) => (
-                        <div key={idx} className="flex items-center gap-1">
-                           <span className={`w-1.5 h-1.5 shrink-0 rounded-full ${article.status === 'published' ? 'bg-slate-800' : 'bg-orange-500'}`} />
-                           <p className="text-[10px] sm:text-xs truncate text-slate-600 font-medium leading-none">
-                             {article.media}
-                           </p>
-                        </div>
-                      ))}
-                      {dayArticles.length > 2 && (
-                        <p className="text-[10px] text-slate-400 pl-2.5">+ {dayArticles.length - 2}</p>
-                      )}
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          </CardContent>
-        </Card>
+                    {day}
+                  </span>
 
-        {/* 우측 사이드바: 선택된 날짜 상세 */}
-        <div className="xl:col-span-1 space-y-6">
-          <Card className="h-full border-t-4 border-t-orange-500 shadow-sm flex flex-col">
-            <CardHeader className="bg-slate-50/50 pb-4">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-lg">
-                  {month + 1}월 
-                  {selectedDay ? (
-                     <span className="text-orange-600 text-2xl ml-1">{selectedDay}</span> 
-                  ) : (
-                     <span className="text-slate-400 text-sm ml-2 font-normal">날짜를 선택하세요</span>
+                  {/* 건수 도트 */}
+                  {count > 0 && (
+                    <span
+                      className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full"
+                      style={{
+                        background: isSelected ? "rgba(255,255,255,0.25)" : "rgba(99,102,241,0.15)",
+                        color: isSelected ? "white" : "#818cf8",
+                      }}
+                    >
+                      {count}건
+                    </span>
                   )}
-                  {selectedDay && <span className="text-lg ml-1">일</span>}
-                </CardTitle>
-                <Badge variant="outline" className="bg-white">
-                  {selectedArticles.length > 0 ? `${selectedArticles.length}건 일정` : '일정 없음'}
-                </Badge>
-              </div>
-              <CardDescription>
-                선택한 날짜의 보도자료 배포 현황입니다.
-              </CardDescription>
-            </CardHeader>
-            <Separator />
-            <ScrollArea className="flex-1 max-h-[600px] p-6">
-              {selectedDay ? (
-                selectedArticles.length > 0 ? (
-                  <div className="space-y-4">
-                    {selectedArticles.map((article) => (
-                      <div key={article.id} className="group relative bg-white border rounded-xl p-4 shadow-sm hover:shadow-md transition-all hover:border-slate-400">
-                        <div className="flex justify-between items-start mb-2">
-                           <Badge 
-                              className={`
-                                ${article.status === 'published' 
-                                  ? 'bg-slate-100 text-slate-700 hover:bg-slate-200 border-0' 
-                                  : 'bg-orange-100 text-orange-700 hover:bg-orange-200 border-0'}
-                              `}
-                            >
-                              {article.status === 'published' ? '송출 완료' : '예약 대기'}
-                            </Badge>
-                            <Button variant="ghost" size="icon" className="h-6 w-6 text-slate-400 hover:text-slate-900">
-                              <MoreHorizontal className="w-4 h-4" />
-                            </Button>
-                        </div>
-                        
-                        <h4 className="font-bold text-slate-900 mb-1 leading-snug group-hover:text-blue-600 transition-colors cursor-pointer">
-                          {article.title}
-                        </h4>
-                        
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground mb-3">
-                          <Megaphone className="w-3 h-3" />
-                          <span>{article.media}</span>
-                          <span className="text-slate-300">|</span>
-                          <Clock className="w-3 h-3" />
-                          <span>14:00 예정</span>
-                        </div>
-
-                        <div className="flex items-center gap-2 pt-2 border-t border-dashed">
-                          <Avatar className="h-5 w-5">
-                              <AvatarImage src="/placeholder.png" />
-                              <AvatarFallback className="text-[9px] bg-slate-100">Logo</AvatarFallback>
-                          </Avatar>
-                          <span className="text-xs font-medium text-slate-600">A한의원</span>
-                          <Button variant="ghost" size="icon" className="h-6 w-6 ml-auto text-slate-400 hover:text-blue-600">
-                              <ExternalLink className="w-3 h-3" />
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                    <Button variant="outline" className="w-full border-dashed border-2 py-6 text-slate-400 hover:text-slate-600 hover:bg-slate-50">
-                      <Plus className="w-4 h-4 mr-2" />
-                      일정 추가
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="h-full flex flex-col items-center justify-center text-center py-12 text-muted-foreground">
-                    <CalendarIcon className="w-12 h-12 mb-4 text-slate-200" />
-                    <p className="text-lg font-medium text-slate-400">등록된 기사가 없습니다.</p>
-                    <Button variant="outline" className="mt-4">
-                      일정 추가하기
-                    </Button>
-                  </div>
-                )
-              ) : (
-                <div className="h-full flex flex-col items-center justify-center text-center py-12 text-muted-foreground">
-                  <p className="text-sm text-slate-400">
-                    달력에서 날짜를 클릭하여<br/>상세 일정을 확인하세요.
-                  </p>
-                </div>
-              )}
-            </ScrollArea>
-          </Card>
-        </div>
-
+                </button>
+              )
+            })}
+          </div>
+        )}
       </div>
+
+      {/* ━━━ 선택된 날짜 기사 목록 ━━━ */}
+      {selectedDate && (
+        <div className="space-y-3">
+          {/* 날짜 + 추가 버튼 */}
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-semibold" style={{ color: "var(--th-text-1)" }}>
+              {formatDisplayDate(selectedDate)}의 기사
+              <span className="ml-1.5 text-xs font-normal" style={{ color: "var(--th-text-3)" }}>
+                ({selectedArticles.length}건)
+              </span>
+            </h2>
+            {formState === null && (
+              <button
+                onClick={openCreate}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all hover:opacity-80"
+                style={{ background: "linear-gradient(90deg, #06b6d4, #6366f1)", color: "white" }}
+              >
+                <Plus className="w-3.5 h-3.5" /> 추가
+              </button>
+            )}
+          </div>
+
+          {/* 기사 테이블 */}
+          <div
+            className="rounded-2xl border overflow-hidden"
+            style={{ background: "var(--th-card-bg)", borderColor: "var(--th-card-border)" }}
+          >
+            {selectedArticles.length === 0 ? (
+              <div className="py-10 text-center text-sm" style={{ color: "var(--th-text-3)" }}>
+                이 날짜에 등록된 기사가 없어요.
+              </div>
+            ) : (
+              <table className="w-full text-sm border-collapse">
+                <thead>
+                  <tr style={HEAD_ST}>
+                    <th className="py-3 px-4 text-left font-medium border-b" style={{ borderColor: "var(--th-row-border)" }}>내용</th>
+                    <th className="py-3 px-4 text-left font-medium border-b hidden sm:table-cell" style={{ borderColor: "var(--th-row-border)" }}>광고주</th>
+                    <th className="py-3 px-4 text-left font-medium border-b hidden md:table-cell" style={{ borderColor: "var(--th-row-border)" }}>업체</th>
+                    <th className="py-3 px-4 text-left font-medium border-b hidden md:table-cell" style={{ borderColor: "var(--th-row-border)" }}>등록일</th>
+                    <th className="py-3 px-4 border-b" style={{ borderColor: "var(--th-row-border)" }} />
+                  </tr>
+                </thead>
+                <tbody>
+                  {selectedArticles.map((article) => (
+                    <tr
+                      key={article.id}
+                      className="border-t"
+                      style={{ borderColor: "var(--th-row-border)" }}
+                      onMouseEnter={(e) => { e.currentTarget.style.background = "var(--th-row-hover)" }}
+                      onMouseLeave={(e) => { e.currentTarget.style.background = "" }}
+                    >
+                      <td className="py-3 px-4">
+                        <p className="text-sm line-clamp-2" style={{ color: "var(--th-text-1)" }}>
+                          {article.content}
+                        </p>
+                      </td>
+                      <td className="py-3 px-4 text-xs hidden sm:table-cell" style={{ color: "var(--th-text-2)" }}>
+                        {article.advertiser_company_name || "-"}
+                      </td>
+                      <td className="py-3 px-4 text-xs hidden md:table-cell" style={{ color: "var(--th-text-3)" }}>
+                        {article.agency_company_name || "-"}
+                      </td>
+                      <td className="py-3 px-4 text-xs hidden md:table-cell" style={{ color: "var(--th-text-3)" }}>
+                        {formatShort(article.created_at)}
+                      </td>
+                      <td className="py-3 px-4">
+                        <div className="flex items-center justify-end gap-1.5">
+                          <button
+                            onClick={() => openEdit(article)}
+                            className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium transition-all hover:opacity-80"
+                            style={{
+                              background: "rgba(99,102,241,0.1)",
+                              color: "#818cf8",
+                              border: "1px solid rgba(99,102,241,0.25)",
+                            }}
+                          >
+                            <Pencil className="w-3 h-3" /> 수정
+                          </button>
+                          <button
+                            onClick={() => handleDelete(article.id)}
+                            disabled={deleteMutation.isPending}
+                            className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium transition-all hover:opacity-80 disabled:opacity-40"
+                            style={{
+                              background: "rgba(248,113,113,0.1)",
+                              color: "#f87171",
+                              border: "1px solid rgba(248,113,113,0.25)",
+                            }}
+                          >
+                            <Trash2 className="w-3 h-3" /> 삭제
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+
+          {/* ━━━ 인라인 폼 ━━━ */}
+          {formState !== null && (
+            <div
+              className="rounded-2xl border p-5 space-y-4"
+              style={{ background: "var(--th-card-bg)", borderColor: "var(--th-card-border)" }}
+            >
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-semibold" style={{ color: "var(--th-text-1)" }}>
+                  {formatDisplayDate(selectedDate)} — 기사 {formState.mode === "create" ? "등록" : "수정"}
+                </h3>
+                <button
+                  onClick={closeForm}
+                  className="w-7 h-7 rounded-lg flex items-center justify-center transition-all hover:opacity-75"
+                  style={{ background: "var(--th-toggle-bg)", border: "1px solid var(--th-toggle-border)" }}
+                >
+                  <X className="w-3.5 h-3.5" style={{ color: "var(--th-text-2)" }} />
+                </button>
+              </div>
+
+              {/* 날짜 (읽기 전용) */}
+              <div>
+                <label className="text-[11px] mb-1 block" style={{ color: "var(--th-text-3)" }}>날짜</label>
+                <div
+                  className="px-3 py-2 rounded-[10px] text-sm"
+                  style={{
+                    background: "var(--th-table-head)",
+                    border: "1px solid var(--th-row-border)",
+                    color: "var(--th-text-2)",
+                  }}
+                >
+                  {selectedDate}
+                </div>
+              </div>
+
+              {/* 제목 */}
+              <div>
+                <label className="text-[11px] mb-1 block" style={{ color: "var(--th-text-3)" }}>
+                  제목 <span style={{ color: "#f87171" }}>*</span>
+                </label>
+                <input
+                  type="text"
+                  value={formTitle}
+                  onChange={(e) => setFormTitle(e.target.value)}
+                  placeholder="기사 제목을 입력하세요..."
+                  className="w-full px-3 py-2 rounded-[10px] text-sm outline-none transition-all"
+                  style={{
+                    background: "var(--th-input-bg)",
+                    border: "1px solid var(--th-input-border)",
+                    color: "var(--th-text-1)",
+                  }}
+                />
+              </div>
+
+              {/* 내용 */}
+              <div>
+                <label className="text-[11px] mb-1 block" style={{ color: "var(--th-text-3)" }}>
+                  내용 <span style={{ color: "#f87171" }}>*</span>
+                </label>
+                <textarea
+                  rows={4}
+                  value={formContent}
+                  onChange={(e) => setFormContent(e.target.value)}
+                  placeholder="기사 내용을 입력하세요..."
+                  className="w-full px-3 py-2 rounded-[10px] text-sm outline-none transition-all resize-none"
+                  style={{
+                    background: "var(--th-input-bg)",
+                    border: "1px solid var(--th-input-border)",
+                    color: "var(--th-text-1)",
+                  }}
+                />
+              </div>
+
+              {/* URL */}
+              <div>
+                <label className="text-[11px] mb-1 block" style={{ color: "var(--th-text-3)" }}>
+                  URL
+                </label>
+                <input
+                  type="text"
+                  value={formUrl}
+                  onChange={(e) => setFormUrl(e.target.value)}
+                  placeholder="https://..."
+                  className="w-full px-3 py-2 rounded-[10px] text-sm outline-none transition-all"
+                  style={{
+                    background: "var(--th-input-bg)",
+                    border: "1px solid var(--th-input-border)",
+                    color: "var(--th-text-1)",
+                  }}
+                />
+              </div>
+
+              {/* 광고주 선택 */}
+              <div>
+                <label className="text-[11px] mb-1 block" style={{ color: "var(--th-text-3)" }}>
+                  광고주 선택 <span style={{ color: "#f87171" }}>*</span>
+                </label>
+                <select
+                  value={formAdvertiserId}
+                  onChange={(e) => setFormAdvertiserId(e.target.value === "" ? "" : Number(e.target.value))}
+                  className="w-full px-3 py-2 rounded-[10px] text-sm outline-none transition-all"
+                  style={{
+                    background: "var(--th-input-bg)",
+                    border: "1px solid var(--th-input-border)",
+                    color: formAdvertiserId === "" ? "var(--th-text-3)" : "var(--th-text-1)",
+                  }}
+                >
+                  <option value="">광고주를 선택하세요</option>
+                  {advertisers.map((adv) => (
+                    <option key={adv.id} value={adv.id}>
+                      {adv.company_name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* 버튼 */}
+              <div className="flex items-center justify-end gap-2 pt-1">
+                <button
+                  onClick={closeForm}
+                  className="px-4 py-2 rounded-xl text-sm transition-all hover:opacity-75"
+                  style={{ background: "var(--th-toggle-bg)", color: "var(--th-text-2)", border: "1px solid var(--th-toggle-border)" }}
+                >
+                  취소
+                </button>
+                <button
+                  onClick={handleSave}
+                  disabled={!formContent.trim() || !formAdvertiserId || isPending}
+                  className="px-4 py-2 rounded-xl text-sm font-medium transition-all hover:opacity-80 disabled:opacity-40"
+                  style={{ background: "linear-gradient(90deg, #06b6d4, #6366f1)", color: "white" }}
+                >
+                  {isPending ? "저장 중..." : "저장"}
+                </button>
+              </div>
+
+              {(createMutation.isError || updateMutation.isError) && (
+                <p className="text-xs text-center" style={{ color: "#f87171" }}>
+                  저장에 실패했어요. 다시 시도해주세요.
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+      )}
     </div>
+  )
+}
+
+export default function PressPage() {
+  return (
+    <Suspense>
+      <PressContent />
+    </Suspense>
   )
 }

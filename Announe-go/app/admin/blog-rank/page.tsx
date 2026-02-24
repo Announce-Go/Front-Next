@@ -1,386 +1,427 @@
+"use client"
+
+import { useState, useEffect, Suspense } from "react"
+import { useQuery, useMutation } from "@tanstack/react-query"
+import { useRouter, usePathname, useSearchParams } from "next/navigation"
+import { Search, ChevronLeft, ChevronRight, ExternalLink } from "lucide-react"
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
+  getBlogRankRealtime,
+  getBlogRankTrackingList,
+} from "@/Features/apis/admin/blogRank"
 
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
+const STATUS_LABELS: Record<string, { label: string; color: string; bg: string; border: string }> = {
+  active:    { label: "진행중", color: "#34d399", bg: "rgba(52,211,153,0.12)",  border: "rgba(52,211,153,0.3)" },
+  completed: { label: "완료",   color: "#6366f1", bg: "rgba(99,102,241,0.12)",  border: "rgba(99,102,241,0.3)" },
+  stopped:   { label: "중단",   color: "#94a3b8", bg: "rgba(148,163,184,0.12)", border: "rgba(148,163,184,0.3)" },
+}
 
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+const STATUS_FILTER = [
+  { value: "",           label: "전체" },
+  { value: "active",    label: "진행중" },
+  { value: "completed", label: "완료" },
+  { value: "stopped",   label: "중단" },
+]
 
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Progress } from "@/components/ui/progress"
+const HEAD_ST = {
+  color: "var(--th-text-3)",
+  background: "var(--th-table-head)",
+  fontSize: "12px",
+}
 
-import { 
-  FileText, // 블로그 상징 아이콘
-  Search, 
-  ExternalLink, 
-  Trophy,
-  MoreHorizontal,
-  Sparkles,
-  PenTool
-} from "lucide-react"
+const PAGE_SIZE = 10
+
+function SkeletonRow() {
+  return (
+    <tr>
+      {[120, 80, 100, 100, 60, 100, 70].map((w, i) => (
+        <td key={i} className="py-3.5 px-4">
+          <div
+            className="h-4 rounded-lg animate-pulse"
+            style={{ width: `${w}px`, background: "var(--th-table-head)" }}
+          />
+        </td>
+      ))}
+    </tr>
+  )
+}
+
+function BlogRankContent() {
+  const router       = useRouter()
+  const pathname     = usePathname()
+  const searchParams = useSearchParams()
+
+  const urlStatus = searchParams.get("status") ?? ""
+  const urlSearch = searchParams.get("search") ?? ""
+  const page      = Number(searchParams.get("page") ?? "1")
+
+  const [searchInput, setSearchInput] = useState(urlSearch)
+  useEffect(() => { setSearchInput(urlSearch) }, [urlSearch])
+
+  const [rtKeyword, setRtKeyword] = useState("")
+  const [rtUrl, setRtUrl]         = useState("")
+
+  const updateURL = (updates: Record<string, string>) => {
+    const params = new URLSearchParams(window.location.search)
+    Object.entries(updates).forEach(([k, v]) => {
+      if (v) params.set(k, v)
+      else params.delete(k)
+    })
+    const qs = params.toString()
+    router.replace(qs ? `${pathname}?${qs}` : pathname)
+  }
+
+  const handleSearch = () => updateURL({ search: searchInput, page: "" })
+  const handleStatus = (v: string) => updateURL({ status: v, page: "" })
+  const handlePage   = (p: number) => updateURL({ page: p === 1 ? "" : String(p) })
+
+  const realtimeMutation = useMutation({
+    mutationFn: () => getBlogRankRealtime({ keyword: rtKeyword.trim(), url: rtUrl.trim() }),
+  })
+
+  const { data, isLoading } = useQuery({
+    queryKey: ["admin", "blog-rank", "tracking", { status: urlStatus, search: urlSearch, page }],
+    queryFn: () => getBlogRankTrackingList({
+      status:    urlStatus || undefined,
+      search:    urlSearch || undefined,
+      page,
+      page_size: PAGE_SIZE,
+    }),
+    staleTime: 30 * 1000,
+  })
+
+  const items      = data?.items ?? []
+  const total      = data?.pagination?.total ?? data?.total ?? 0
+  const totalPages = data?.pagination?.total_pages ?? Math.max(1, Math.ceil(total / PAGE_SIZE))
+
+  return (
+    <div className="space-y-6">
+      {/* 헤더 */}
+      <div>
+        <h1 className="text-xl font-bold" style={{ color: "var(--th-text-1)" }}>블로그 순위 관리</h1>
+        <p className="text-xs mt-0.5" style={{ color: "var(--th-text-3)" }}>
+          실시간 순위 조회 및 키워드 추적 목록을 관리합니다.
+        </p>
+      </div>
+
+      {/* ━━━ 실시간 순위 조회 ━━━ */}
+      <div
+        className="rounded-2xl border p-5 space-y-4"
+        style={{ background: "var(--th-card-bg)", borderColor: "var(--th-card-border)" }}
+      >
+        <h2 className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--th-text-3)" }}>
+          실시간 순위 조회 (건바이건)
+        </h2>
+
+        <div className="flex flex-wrap items-end gap-3">
+          <div className="flex flex-col gap-1 flex-1 min-w-[160px] max-w-xs">
+            <label className="text-[11px]" style={{ color: "var(--th-text-3)" }}>키워드</label>
+            <input
+              type="text"
+              placeholder="예: 강남한의원"
+              value={rtKeyword}
+              onChange={(e) => setRtKeyword(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && rtKeyword.trim() && rtUrl.trim()) realtimeMutation.mutate()
+              }}
+              className="px-3 py-2 rounded-[10px] text-sm outline-none transition-all"
+              style={{
+                background: "var(--th-input-bg)",
+                border: "1px solid var(--th-input-border)",
+                color: "var(--th-text-1)",
+              }}
+            />
+          </div>
+
+          <div className="flex flex-col gap-1 flex-1 min-w-[200px] max-w-md">
+            <label className="text-[11px]" style={{ color: "var(--th-text-3)" }}>URL</label>
+            <input
+              type="text"
+              placeholder="https://blog.naver.com/..."
+              value={rtUrl}
+              onChange={(e) => setRtUrl(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && rtKeyword.trim() && rtUrl.trim()) realtimeMutation.mutate()
+              }}
+              className="px-3 py-2 rounded-[10px] text-sm outline-none transition-all"
+              style={{
+                background: "var(--th-input-bg)",
+                border: "1px solid var(--th-input-border)",
+                color: "var(--th-text-1)",
+              }}
+            />
+          </div>
+
+          <button
+            onClick={() => {
+              if (rtKeyword.trim() && rtUrl.trim()) realtimeMutation.mutate()
+            }}
+            disabled={!rtKeyword.trim() || !rtUrl.trim() || realtimeMutation.isPending}
+            className="px-4 py-2 rounded-[10px] text-sm font-medium transition-all hover:opacity-80 disabled:opacity-40"
+            style={{ background: "linear-gradient(90deg, #06b6d4, #6366f1)", color: "white" }}
+          >
+            {realtimeMutation.isPending ? "조회 중..." : "조회"}
+          </button>
+        </div>
+
+        {realtimeMutation.isSuccess && (
+          <div
+            className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm"
+            style={{ background: "rgba(52,211,153,0.08)", border: "1px solid rgba(52,211,153,0.25)" }}
+          >
+            <span style={{ color: "var(--th-text-2)" }}>조회 결과: 현재 순위</span>
+            {realtimeMutation.data.rank !== null ? (
+              <span className="font-bold text-base" style={{ color: "#34d399" }}>
+                {realtimeMutation.data.rank}위
+              </span>
+            ) : (
+              <span className="font-medium" style={{ color: "#94a3b8" }}>순위권 외</span>
+            )}
+          </div>
+        )}
+        {realtimeMutation.isError && (
+          <div
+            className="px-4 py-3 rounded-xl text-sm"
+            style={{ background: "rgba(248,113,113,0.08)", border: "1px solid rgba(248,113,113,0.25)", color: "#f87171" }}
+          >
+            조회에 실패했어요. 키워드와 URL을 다시 확인해주세요.
+          </div>
+        )}
+      </div>
+
+      {/* ━━━ 추적 목록 ━━━ */}
+      <div className="space-y-4">
+        <h2 className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--th-text-3)" }}>
+          추적 목록 (월보장)
+        </h2>
+
+        {/* 필터 & 검색 */}
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            {STATUS_FILTER.map(({ value, label }) => (
+              <button
+                key={value}
+                onClick={() => handleStatus(value)}
+                className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all hover:opacity-80"
+                style={{
+                  background: urlStatus === value
+                    ? "linear-gradient(90deg, #06b6d4, #6366f1)"
+                    : "var(--th-toggle-bg)",
+                  color: urlStatus === value ? "white" : "var(--th-text-2)",
+                  border: urlStatus === value ? "none" : "1px solid var(--th-toggle-border)",
+                }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
+          <div className="flex items-center gap-2 flex-1 min-w-[240px] max-w-md ml-auto">
+            <div className="relative flex-1">
+              <Search
+                className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5"
+                style={{ color: "var(--th-text-3)" }}
+              />
+              <input
+                type="text"
+                placeholder="키워드 / 업체 / 광고주 검색..."
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                className="w-full pl-9 pr-3 py-2 rounded-[10px] text-sm outline-none transition-all"
+                style={{
+                  background: "var(--th-input-bg)",
+                  border: "1px solid var(--th-input-border)",
+                  color: "var(--th-text-1)",
+                }}
+              />
+            </div>
+            <button
+              onClick={handleSearch}
+              className="px-3 py-2 rounded-[10px] text-sm font-medium flex items-center gap-1.5 transition-all hover:opacity-80 flex-shrink-0"
+              style={{ background: "linear-gradient(90deg, #06b6d4, #6366f1)", color: "white" }}
+            >
+              <Search className="w-3.5 h-3.5" /> 검색
+            </button>
+          </div>
+
+          {!isLoading && total > 0 && (
+            <p className="text-xs" style={{ color: "var(--th-text-3)" }}>
+              총 <span style={{ color: "#06b6d4", fontWeight: 600 }}>{total}</span>건
+            </p>
+          )}
+        </div>
+
+        {/* 테이블 */}
+        <div
+          className="rounded-2xl border overflow-hidden"
+          style={{ background: "var(--th-card-bg)", borderColor: "var(--th-card-border)" }}
+        >
+          <table className="w-full text-sm border-collapse">
+            <thead>
+              <tr style={HEAD_ST}>
+                <th className="py-3 px-4 text-left font-medium border-b" style={{ borderColor: "var(--th-row-border)" }}>키워드</th>
+                <th className="py-3 px-4 text-left font-medium border-b hidden sm:table-cell" style={{ borderColor: "var(--th-row-border)" }}>URL</th>
+                <th className="py-3 px-4 text-left font-medium border-b hidden md:table-cell" style={{ borderColor: "var(--th-row-border)" }}>광고주</th>
+                <th className="py-3 px-4 text-left font-medium border-b hidden md:table-cell" style={{ borderColor: "var(--th-row-border)" }}>업체</th>
+                <th className="py-3 px-4 text-left font-medium border-b" style={{ borderColor: "var(--th-row-border)" }}>회차</th>
+                <th className="py-3 px-4 text-left font-medium border-b hidden lg:table-cell" style={{ borderColor: "var(--th-row-border)" }}>진행률</th>
+                <th className="py-3 px-4 text-right font-medium border-b" style={{ borderColor: "var(--th-row-border)" }}>최근순위</th>
+              </tr>
+            </thead>
+            <tbody>
+              {isLoading ? (
+                Array.from({ length: 8 }).map((_, i) => <SkeletonRow key={i} />)
+              ) : items.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="py-16 text-center text-sm" style={{ color: "var(--th-text-3)" }}>
+                    조회된 추적 데이터가 없어요.
+                  </td>
+                </tr>
+              ) : (
+                items.map((item) => {
+                  const st = STATUS_LABELS[item.status] ?? STATUS_LABELS.stopped
+                  const progress = item.total_count > 0
+                    ? Math.round((item.progress_count / item.total_count) * 100)
+                    : 0
+                  return (
+                    <tr
+                      key={item.id}
+                      onClick={() => router.push(`/admin/blog-rank/tracking/${item.id}`)}
+                      className="cursor-pointer transition-colors border-t"
+                      style={{ borderColor: "var(--th-row-border)" }}
+                      onMouseEnter={(e) => { e.currentTarget.style.background = "var(--th-row-hover)" }}
+                      onMouseLeave={(e) => { e.currentTarget.style.background = "" }}
+                    >
+                      <td className="py-3.5 px-4">
+                        <div className="flex items-center gap-2">
+                          <p className="font-medium text-sm" style={{ color: "var(--th-text-1)" }}>
+                            {item.keyword}
+                          </p>
+                          <span
+                            className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium"
+                            style={{ background: st.bg, color: st.color, border: `1px solid ${st.border}` }}
+                          >
+                            {st.label}
+                          </span>
+                        </div>
+                      </td>
+
+                      <td className="py-3.5 px-4 hidden sm:table-cell">
+                        <a
+                          href={item.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className="flex items-center gap-1 transition-opacity hover:opacity-60"
+                          style={{ color: "#06b6d4" }}
+                        >
+                          <ExternalLink className="w-3.5 h-3.5 flex-shrink-0" />
+                          <span className="text-xs">링크</span>
+                        </a>
+                      </td>
+
+                      <td className="py-3.5 px-4 text-xs hidden md:table-cell" style={{ color: "var(--th-text-2)" }}>
+                        {item.advertiser_company_name || "-"}
+                      </td>
+
+                      <td className="py-3.5 px-4 text-xs hidden md:table-cell" style={{ color: "var(--th-text-3)" }}>
+                        {item.agency_company_name || "-"}
+                      </td>
+
+                      <td className="py-3.5 px-4">
+                        <span
+                          className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium"
+                          style={{ background: "var(--th-table-head)", color: "var(--th-text-2)", border: "1px solid var(--th-row-border)" }}
+                        >
+                          {item.current_round}회차
+                        </span>
+                      </td>
+
+                      <td className="py-3.5 px-4 hidden lg:table-cell">
+                        <div className="space-y-1 min-w-[120px]">
+                          <div className="flex justify-between text-[11px]" style={{ color: "var(--th-text-3)" }}>
+                            <span>{item.progress_count}/{item.total_count}회</span>
+                            <span style={{ color: progress === 100 ? "#6366f1" : "#34d399", fontWeight: 600 }}>
+                              {progress}%
+                            </span>
+                          </div>
+                          <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: "var(--th-table-head)" }}>
+                            <div
+                              className="h-full rounded-full transition-all"
+                              style={{
+                                width: `${progress}%`,
+                                background: progress === 100
+                                  ? "linear-gradient(90deg, #6366f1, #818cf8)"
+                                  : "linear-gradient(90deg, #06b6d4, #34d399)",
+                              }}
+                            />
+                          </div>
+                        </div>
+                      </td>
+
+                      <td className="py-3.5 px-4 text-right">
+                        {item.latest_rank !== null ? (
+                          <span className="font-bold text-sm" style={{ color: "var(--th-text-1)" }}>
+                            {item.latest_rank}위
+                          </span>
+                        ) : (
+                          <span className="text-xs" style={{ color: "var(--th-text-3)" }}>순위권 외</span>
+                        )}
+                      </td>
+                    </tr>
+                  )
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* 페이지네이션 */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-center gap-1">
+            <button
+              disabled={page <= 1}
+              onClick={() => handlePage(page - 1)}
+              className="w-8 h-8 rounded-lg flex items-center justify-center transition-all hover:opacity-75 disabled:opacity-30"
+              style={{ background: "var(--th-toggle-bg)", border: "1px solid var(--th-toggle-border)" }}
+            >
+              <ChevronLeft className="w-4 h-4" style={{ color: "var(--th-text-2)" }} />
+            </button>
+
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+              <button
+                key={p}
+                onClick={() => handlePage(p)}
+                className="w-8 h-8 rounded-lg text-xs font-medium transition-all hover:opacity-75"
+                style={{
+                  background: p === page ? "linear-gradient(90deg, #06b6d4, #6366f1)" : "var(--th-toggle-bg)",
+                  color:      p === page ? "white" : "var(--th-text-2)",
+                  border:     p === page ? "none"  : "1px solid var(--th-toggle-border)",
+                }}
+              >
+                {p}
+              </button>
+            ))}
+
+            <button
+              disabled={page >= totalPages}
+              onClick={() => handlePage(page + 1)}
+              className="w-8 h-8 rounded-lg flex items-center justify-center transition-all hover:opacity-75 disabled:opacity-30"
+              style={{ background: "var(--th-toggle-bg)", border: "1px solid var(--th-toggle-border)" }}
+            >
+              <ChevronRight className="w-4 h-4" style={{ color: "var(--th-text-2)" }} />
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
 
 export default function BlogRankPage() {
   return (
-    <div className="p-8 bg-slate-50 min-h-screen">
-      
-      {/* 헤더 */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
-            <FileText className="w-6 h-6 text-emerald-600" />
-            블로그 순위 관리
-          </h1>
-          <p className="text-muted-foreground mt-1">블로그 포스팅의 키워드 상위 노출 순위를 실시간으로 추적합니다.</p>
-        </div>
-      </div>
-
-      <div className="space-y-6">
-        
-        {/* 1. 실시간 순위 조회 - Emerald Theme */}
-        <Card className="shadow-sm border-t-4 border-t-emerald-500 bg-white !hidden">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Search className="w-5 h-5 text-emerald-600" />
-              실시간 순위 조회
-            </CardTitle>
-            <CardDescription>
-              블로그 포스팅 URL과 키워드를 입력하여 현재 노출 순위를 확인합니다.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col md:flex-row gap-4 items-end">
-              <div className="grid w-full items-center gap-1.5">
-                <label className="text-sm font-medium leading-none">
-                  키워드
-                </label>
-                <Input type="text" placeholder="예: 강남한의원" className="bg-slate-50" />
-              </div>
-              <div className="grid w-full items-center gap-1.5 flex-1">
-                 <label className="text-sm font-medium leading-none">
-                  블로그 포스팅 URL
-                </label>
-                <Input type="text" placeholder="https://blog.naver.com/..." className="bg-slate-50" />
-              </div>
-              <Button className="bg-emerald-600 hover:bg-emerald-700 text-white min-w-[100px]">
-                조회하기
-              </Button>
-            </div>
-
-            {/* 조회 결과 영역 */}
-            <div className="mt-6 p-4 bg-emerald-50 border border-emerald-200 rounded-lg flex items-center justify-between animate-in fade-in slide-in-from-top-2">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-white rounded-full shadow-sm">
-                  <Sparkles className="w-6 h-6 text-emerald-500" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-emerald-800">조회 결과</p>
-                  <p className="text-xs text-emerald-600">키워드: 강남한의원</p>
-                </div>
-              </div>
-              <div className="flex items-baseline gap-1">
-                <span className="text-sm text-emerald-700 font-medium mr-2">현재 순위</span>
-                <span className="text-3xl font-bold text-emerald-700">3</span>
-                <span className="text-lg font-medium text-emerald-600">위</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* 2. 추적 목록 (월보장) - Emerald Theme */}
-        <Card className="shadow-sm border-l-4 border-l-emerald-500">
-          <CardHeader>
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div>
-                <CardTitle>추적 목록 (월보장)</CardTitle>
-                <CardDescription>관리 중인 블로그 포스팅의 순위 유지 현황입니다.</CardDescription>
-              </div>
-              <div className="flex gap-2">
-                <Select>
-                  <SelectTrigger className="w-[130px]">
-                    <SelectValue placeholder="상태: 전체" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">전체</SelectItem>
-                    <SelectItem value="active">진행중</SelectItem>
-                    <SelectItem value="paused">일시정지</SelectItem>
-                  </SelectContent>
-                </Select>
-                <div className="relative w-[200px]">
-                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input type="text" placeholder="검색어 입력" className="pl-9" />
-                </div>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-slate-50/50">
-                  <TableHead className="w-[150px]">키워드</TableHead>
-                  <TableHead className="w-[80px]">URL</TableHead>
-                  <TableHead>광고주 / 업체</TableHead>
-                  <TableHead>회차</TableHead>
-                  <TableHead className="w-[200px]">진행률 (보장일수)</TableHead>
-                  <TableHead className="text-right">최근순위</TableHead>
-                  <TableHead className="w-[50px]"></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                
-                {/* Row 1: 3위 (상위권) */}
-                <TableRow className="hover:bg-slate-50/50">
-                  <TableCell className="font-bold text-slate-800">강남한의원</TableCell>
-                  <TableCell>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-emerald-600">
-                      <ExternalLink className="w-4 h-4" />
-                    </Button>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-col gap-1">
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline" className="text-[10px] px-1 py-0 border-blue-200 text-blue-600 bg-blue-50">광고주</Badge>
-                        <span className="text-sm font-medium">A한의원</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline" className="text-[10px] px-1 py-0 border-purple-200 text-purple-600 bg-purple-50">업체</Badge>
-                        <span className="text-xs text-muted-foreground">X마케팅</span>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="secondary" className="font-normal">3회차</Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="space-y-1">
-                      <div className="flex justify-between text-xs text-muted-foreground">
-                        <span>20일 / 25일</span>
-                        <span className="font-medium text-emerald-600">80%</span>
-                      </div>
-                      <Progress value={80} className="h-2 bg-slate-100" />
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex items-center justify-end gap-1">
-                        <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-200 border-0 text-base px-3 py-1">
-                            3위
-                        </Badge>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <MoreHorizontal className="w-4 h-4" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-
-                {/* Row 2: 5위 (일반) */}
-                <TableRow className="hover:bg-slate-50/50">
-                  <TableCell className="font-bold text-slate-800">서울한의원</TableCell>
-                  <TableCell>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-emerald-600">
-                      <ExternalLink className="w-4 h-4" />
-                    </Button>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-col gap-1">
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline" className="text-[10px] px-1 py-0 border-blue-200 text-blue-600 bg-blue-50">광고주</Badge>
-                        <span className="text-sm font-medium">B병원</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                         <Badge variant="outline" className="text-[10px] px-1 py-0 border-purple-200 text-purple-600 bg-purple-50">업체</Badge>
-                        <span className="text-xs text-muted-foreground">Y광고</span>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="secondary" className="font-normal">2회차</Badge>
-                  </TableCell>
-                  <TableCell>
-                     <div className="space-y-1">
-                      <div className="flex justify-between text-xs text-muted-foreground">
-                        <span>25일 / 25일</span>
-                        <span className="font-medium text-blue-600">완료</span>
-                      </div>
-                      <Progress value={100} className="h-2 bg-slate-100" />
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <span className="font-bold text-slate-600">5위</span>
-                  </TableCell>
-                  <TableCell>
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <MoreHorizontal className="w-4 h-4" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-
-                {/* Row 3: 2위 (상위권) */}
-                <TableRow className="hover:bg-slate-50/50">
-                  <TableCell className="font-bold text-slate-800">한의원추천</TableCell>
-                  <TableCell>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-emerald-600">
-                      <ExternalLink className="w-4 h-4" />
-                    </Button>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-col gap-1">
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline" className="text-[10px] px-1 py-0 border-blue-200 text-blue-600 bg-blue-50">광고주</Badge>
-                        <span className="text-sm font-medium">C클리닉</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                         <Badge variant="outline" className="text-[10px] px-1 py-0 border-purple-200 text-purple-600 bg-purple-50">업체</Badge>
-                        <span className="text-xs text-muted-foreground">Z미디어</span>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="secondary" className="font-normal">1회차</Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="space-y-1">
-                      <div className="flex justify-between text-xs text-muted-foreground">
-                        <span>15일 / 25일</span>
-                        <span className="font-medium text-emerald-600">60%</span>
-                      </div>
-                      <Progress value={60} className="h-2 bg-slate-100" />
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-right">
-                     <div className="flex items-center justify-end gap-1">
-                        <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-200 border-0 text-base px-3 py-1">
-                           2위
-                        </Badge>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <MoreHorizontal className="w-4 h-4" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-
-                {/* Row 4: 4위 (일반) */}
-                <TableRow className="hover:bg-slate-50/50">
-                  <TableCell className="font-bold text-slate-800">부산한의원</TableCell>
-                  <TableCell>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-emerald-600">
-                      <ExternalLink className="w-4 h-4" />
-                    </Button>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-col gap-1">
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline" className="text-[10px] px-1 py-0 border-blue-200 text-blue-600 bg-blue-50">광고주</Badge>
-                        <span className="text-sm font-medium">D병원</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                         <Badge variant="outline" className="text-[10px] px-1 py-0 border-purple-200 text-purple-600 bg-purple-50">업체</Badge>
-                        <span className="text-xs text-muted-foreground">A컴퍼니</span>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="secondary" className="font-normal">2회차</Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="space-y-1">
-                      <div className="flex justify-between text-xs text-muted-foreground">
-                        <span>18일 / 25일</span>
-                        <span className="font-medium text-emerald-600">72%</span>
-                      </div>
-                      <Progress value={72} className="h-2 bg-slate-100" />
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <span className="font-bold text-slate-600">4위</span>
-                  </TableCell>
-                  <TableCell>
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <MoreHorizontal className="w-4 h-4" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-
-                {/* Row 5: 1위 (최상위 강조 - 트로피) */}
-                <TableRow className="hover:bg-slate-50/50 bg-emerald-50/30">
-                  <TableCell className="font-bold text-slate-800">대구한의원</TableCell>
-                  <TableCell>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-emerald-600">
-                      <ExternalLink className="w-4 h-4" />
-                    </Button>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-col gap-1">
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline" className="text-[10px] px-1 py-0 border-blue-200 text-blue-600 bg-blue-50">광고주</Badge>
-                        <span className="text-sm font-medium">E클리닉</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                         <Badge variant="outline" className="text-[10px] px-1 py-0 border-purple-200 text-purple-600 bg-purple-50">업체</Badge>
-                        <span className="text-xs text-muted-foreground">B광고</span>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="secondary" className="font-normal">1회차</Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="space-y-1">
-                      <div className="flex justify-between text-xs text-muted-foreground">
-                        <span>10일 / 25일</span>
-                        <span className="font-medium text-emerald-600">40%</span>
-                      </div>
-                      <Progress value={40} className="h-2 bg-slate-100" />
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex items-center justify-end gap-1">
-                        <Badge className="bg-yellow-100 text-yellow-700 hover:bg-yellow-200 border-0 text-base px-3 py-1">
-                            <Trophy className="w-3 h-3 mr-1 inline text-yellow-600" /> 1위
-                        </Badge>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <MoreHorizontal className="w-4 h-4" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-
-              </TableBody>
-            </Table>
-
-            {/* 페이지네이션 */}
-            <div className="mt-4 flex items-center justify-center gap-2">
-                <Button variant="outline" size="sm" disabled>이전</Button>
-                <div className="text-sm font-medium">1 / 10</div>
-                <Button variant="outline" size="sm">다음</Button>
-            </div>
-
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+    <Suspense>
+      <BlogRankContent />
+    </Suspense>
   )
 }
