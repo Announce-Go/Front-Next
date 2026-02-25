@@ -43,9 +43,7 @@ const formSchema = z.object({
     .regex(/[!@#$%^&*(),.?":{}|<>]/, {
       message: "비밀번호에 특수문자가 포함되어야 합니다.",
     }),
-  ClientCompany: z.string().min(1, {
-    message: "광고주는 필수 입력 항목입니다.",
-  }),
+  ClientCompany: z.string().optional(),
   VenderCompany: z.string().min(1, {
     message: "업체명은 필수 입력 항목입니다.",
   }),
@@ -55,9 +53,7 @@ const formSchema = z.object({
   VenderPhone: z.string().min(1, {
     message: "연락처는 필수 입력 항목입니다.",
   }),
-  VenderProducts: z.array(z.string()).min(1, {
-    message: "계약 상품은 필수 입력 항목입니다.",
-  }),
+  VenderProducts: z.array(z.string()).optional(),
   Agreements: z.array(z.enum(["terms", "privacy"])).length(2, {
     message: "이용약관과 개인정보 처리방침에 모두 동의해야 합니다.",
   }),
@@ -73,7 +69,7 @@ function Vender() {
       VenderCompany: "",
       VenderName: "",
       VenderPhone: "",
-      VenderProducts: [],
+      VenderProducts: undefined,
       Agreements: [],
     },
   })
@@ -210,11 +206,11 @@ function Vender() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-sm font-medium mb-2 text-[15px]">
-                      계약 상품
+                      계약 상품##
                     </FormLabel>
                     <div className="flex flex-col items-start gap-3">
                       {[
-                        { id: "blog", label: "블로그 상위노출", value: "blog" },
+                        { id: "blog", label: "블로그 상위노출!", value: "blog" },
                         {
                           id: "brandBlog",
                           label: "브랜드 블로그",

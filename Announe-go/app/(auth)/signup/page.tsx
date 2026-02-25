@@ -45,13 +45,11 @@ const venderSchema = z.object({
   id: z.string().min(5, { message: "아이디는 5자 이상 입력해주세요." }),
   email: z.string().min(1, { message: "이메일을 입력해주세요." }).email("올바른 이메일 형식이 아닙니다."),
   password: z.string().min(1, { message: "비밀번호를 입력해주세요." }),
-  ClientCompany: z.string().min(1, { message: "광고주를 입력해주세요." }),
+  ClientCompany: z.string().optional(),
   VenderCompany: z.string().min(1, { message: "업체명을 입력해주세요." }),
   VenderName: z.string().min(1, { message: "이름을 입력해주세요." }),
   VenderPhone: z.string().min(1, { message: "연락처를 입력해주세요." }),
-  VenderProducts: z
-    .array(z.string())
-    .min(1, { message: "계약 상품을 1개 이상 선택해주세요." }),
+  VenderProducts: z.array(z.string()).optional(),
   Agreements: z
     .array(z.enum(["terms", "privacy"]))
     .length(2, { message: "이용약관과 개인정보 처리방침에 모두 동의해야 합니다." }),
