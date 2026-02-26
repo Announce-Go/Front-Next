@@ -13,7 +13,7 @@ type Props = {
   pageSize: number
 }
 
-export function PlaceRankTrackingControls(props: Props) {
+export function BlogRankTrackingControls(props: Props) {
   const router = useRouter()
   const pathname = usePathname()
   const sp = useSearchParams()
@@ -44,11 +44,9 @@ export function PlaceRankTrackingControls(props: Props) {
     { value: "stopped", label: "중단됨" },
   ]
 
-  const PAGE_SIZE_OPTIONS = ["10", "20", "50"]
-
   return (
     <div className="flex flex-col sm:flex-row gap-2 flex-wrap">
-      {/* 상태 필터 탭 */}
+      {/* 상태 필터 */}
       <div className="flex items-center gap-1">
         {STATUS_OPTIONS.map(({ value, label }) => (
           <button
@@ -115,7 +113,6 @@ export function PlaceRankTrackingControls(props: Props) {
           }}
         />
 
-        {/* 페이지 사이즈 */}
         <select
           value={String(props.pageSize)}
           onChange={(e) => {
@@ -131,7 +128,7 @@ export function PlaceRankTrackingControls(props: Props) {
             color: "#94a3b8",
           }}
         >
-          {PAGE_SIZE_OPTIONS.map((v) => (
+          {["10", "20", "50"].map((v) => (
             <option key={v} value={v} style={{ background: "#0f0f2e" }}>{v}개</option>
           ))}
         </select>
@@ -139,7 +136,7 @@ export function PlaceRankTrackingControls(props: Props) {
 
       {/* 추적 등록 버튼 */}
       <Link
-        href="/agency/place-rank/tracking/new"
+        href="/agency/blog-rank/tracking/new"
         className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-semibold transition-all hover:opacity-80"
         style={{
           background: "linear-gradient(90deg, #06b6d4, #6366f1)",

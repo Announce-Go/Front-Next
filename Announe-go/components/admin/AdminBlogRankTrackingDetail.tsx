@@ -7,7 +7,7 @@ import {
   getBlogRankTrackingDetail,
   stopBlogRankTracking,
 } from "@/Features/apis/admin/blogRank"
-import type { BlogRoundHistory } from "@/Features/apis/admin/blogRank"
+import type { BlogHistoryItem } from "@/Features/apis/admin/blogRank"
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; border: string }> = {
   active:    { label: "추적중", color: "#34d399", bg: "rgba(52,211,153,0.12)",  border: "rgba(52,211,153,0.3)" },
@@ -54,8 +54,15 @@ function PageSkeleton() {
   )
 }
 
-function RoundBlock({ round }: { round: BlogRoundHistory }) {
-  const isActive = round.status === "active"
+function SessionBlock({
+  session,
+  items,
+  isActive,
+}: {
+  session: number
+  items: BlogHistoryItem[]
+  isActive: boolean
+}) {
   const st = isActive
     ? { label: "진행중", color: "#34d399", border: "rgba(52,211,153,0.3)" }
     : { label: "완료",   color: "#6366f1", border: "rgba(99,102,241,0.3)" }
@@ -75,7 +82,7 @@ function RoundBlock({ round }: { round: BlogRoundHistory }) {
       >
         <div className="flex items-center gap-2">
           <span className="text-sm font-semibold" style={{ color: "var(--th-text-1)" }}>
-            {round.round}회차
+            {session}회차
           </span>
           <span
             className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium"
@@ -85,30 +92,35 @@ function RoundBlock({ round }: { round: BlogRoundHistory }) {
           </span>
         </div>
         <span className="text-xs" style={{ color: "var(--th-text-3)" }}>
-          {round.count} / 25회
+          {items.length} / 25회
         </span>
       </div>
 
       <div className="divide-y" style={{ borderColor: "var(--th-row-border)" }}>
-        {round.entries.map((entry, idx) => (
-          <div
-            key={idx}
-            className="flex items-center justify-between px-5 py-3"
-            onMouseEnter={(e) => { e.currentTarget.style.background = "var(--th-row-hover)" }}
-            onMouseLeave={(e) => { e.currentTarget.style.background = "" }}
-          >
-            <span className="text-xs tabular-nums" style={{ color: "var(--th-text-3)" }}>
-              {entry.date}
-            </span>
-            {entry.rank !== null ? (
-              <span className="text-sm font-bold" style={{ color: "var(--th-text-1)" }}>
-                {entry.rank}위
+        {items.map((item, idx) => {
+          const dateLabel = item.checked_at
+            ? new Date(item.checked_at).toLocaleDateString("ko-KR", {
+                year: "numeric", month: "2-digit", day: "2-digit",
+              })
+            : "-"
+          return (
+            <div
+              key={idx}
+              className="flex items-center justify-between px-5 py-3 transition-colors hover:bg-white/[0.03]"
+            >
+              <span className="text-xs tabular-nums" style={{ color: "var(--th-text-3)" }}>
+                {dateLabel}
               </span>
-            ) : (
-              <span className="text-xs" style={{ color: "#94a3b8" }}>순위권 외</span>
-            )}
-          </div>
-        ))}
+              {item.rank !== null ? (
+                <span className="text-sm font-bold" style={{ color: "var(--th-text-1)" }}>
+                  {item.rank}위
+                </span>
+              ) : (
+                <span className="text-xs" style={{ color: "#94a3b8" }}>순위권 외</span>
+              )}
+            </div>
+          )
+        })}
       </div>
     </div>
   )
@@ -180,7 +192,7 @@ export function AdminBlogRankTrackingDetail({ trackingId }: { trackingId: number
           <div>
             <h1 className="text-xl font-bold" style={{ color: "var(--th-text-1)" }}>블로그 순위 추적 상세</h1>
             <p className="text-xs mt-0.5" style={{ color: "var(--th-text-3)" }}>
-              키워드별 회차 순위 히스토리를 확인합니다.
+              키워드별 회차 순위 히스토리를 확인해요.
             </p>
           </div>
         </div>
@@ -200,6 +212,7 @@ export function AdminBlogRankTrackingDetail({ trackingId }: { trackingId: number
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Field label="키워드" value={data?.keyword} />
               <Field label="등록일" value={createdAt} />
+              <Field label="에이전시" value={data?.agency_name} />
 
               <div className="sm:col-span-2">
                 <p className="text-[11px] mb-0.5" style={{ color: "var(--th-text-3)" }}>URL</p>
@@ -221,12 +234,18 @@ export function AdminBlogRankTrackingDetail({ trackingId }: { trackingId: number
                 </div>
               </div>
 
+              {/* 광고주 */}
               <div>
                 <p className="text-[11px] mb-1" style={{ color: "var(--th-text-3)" }}>광고주</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {data?.advertisers?.length ? data.advertisers.map((adv) => (
+                {data?.advertiser_name ? (
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-6 h-6 rounded-md flex items-center justify-center text-[10px] font-bold flex-shrink-0"
+                      style={{ background: "rgba(99,102,241,0.2)", color: "#818cf8" }}
+                    >
+                      {data.advertiser_name[0].toUpperCase()}
+                    </div>
                     <span
-                      key={adv.id}
                       className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium"
                       style={{
                         background: "rgba(99,102,241,0.12)",
@@ -234,12 +253,12 @@ export function AdminBlogRankTrackingDetail({ trackingId }: { trackingId: number
                         border: "1px solid rgba(99,102,241,0.25)",
                       }}
                     >
-                      {adv.company_name}
+                      {data.advertiser_name}
                     </span>
-                  )) : (
-                    <span className="text-sm" style={{ color: "var(--th-text-3)" }}>-</span>
-                  )}
-                </div>
+                  </div>
+                ) : (
+                  <span className="text-sm" style={{ color: "var(--th-text-3)" }}>-</span>
+                )}
               </div>
 
               <div className="flex items-end justify-between">
@@ -276,18 +295,37 @@ export function AdminBlogRankTrackingDetail({ trackingId }: { trackingId: number
             <h3 className="text-xs font-semibold uppercase tracking-wider px-1" style={{ color: "var(--th-text-3)" }}>
               순위 히스토리
             </h3>
-            {data?.rounds?.length ? (
-              data.rounds.map((round) => (
-                <RoundBlock key={round.round} round={round} />
+            {(() => {
+              const histories = data?.histories ?? []
+              if (histories.length === 0) {
+                return (
+                  <div
+                    className="rounded-2xl border py-12 text-center text-sm"
+                    style={{ background: "var(--th-card-bg)", borderColor: "var(--th-card-border)", color: "var(--th-text-3)" }}
+                  >
+                    아직 조회된 순위 기록이 없어요.
+                  </div>
+                )
+              }
+
+              const grouped = new Map<number, BlogHistoryItem[]>()
+              for (const item of histories) {
+                const s = item.session ?? 1
+                if (!grouped.has(s)) grouped.set(s, [])
+                grouped.get(s)!.push(item)
+              }
+              const sortedSessions = Array.from(grouped.keys()).sort((a, b) => b - a)
+              const currentSession = data?.current_session ?? Math.max(...sortedSessions)
+
+              return sortedSessions.map((session) => (
+                <SessionBlock
+                  key={session}
+                  session={session}
+                  items={grouped.get(session)!}
+                  isActive={session === currentSession}
+                />
               ))
-            ) : (
-              <div
-                className="rounded-2xl border py-12 text-center text-sm"
-                style={{ background: "var(--th-card-bg)", borderColor: "var(--th-card-border)", color: "var(--th-text-3)" }}
-              >
-                아직 조회된 순위 기록이 없어요.
-              </div>
-            )}
+            })()}
           </div>
         </>
       )}

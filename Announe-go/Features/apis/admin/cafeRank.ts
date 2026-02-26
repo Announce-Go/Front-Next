@@ -15,15 +15,18 @@ export async function getCafeRankRealtime(params: { keyword: string; url: string
 /* ── 추적 목록 ── */
 export type CafeRankTrackingItem = {
   id: number
+  type: string
   keyword: string
   url: string
-  advertiser_company_name: string
-  agency_company_name: string
-  current_round: number
-  progress_count: number
-  total_count: number
-  latest_rank: number | null
   status: "active" | "completed" | "stopped"
+  current_session: number
+  agency_id: number
+  agency_name: string
+  advertiser_id: number
+  advertiser_name: string
+  latest_rank: number | null
+  latest_checked_at: string | null
+  created_at: string
 }
 
 export type CafeRankTrackingListResponse = {
@@ -50,26 +53,27 @@ export async function getCafeRankTrackingList(params?: {
 }
 
 /* ── 추적 상세 ── */
-export type CafeRankHistoryEntry = {
-  date: string
+export type CafeHistoryItem = {
+  checked_at: string
   rank: number | null
-}
-
-export type CafeRoundHistory = {
-  round: number
-  status: "active" | "completed"
-  count: number
-  entries: CafeRankHistoryEntry[]
+  session: number
 }
 
 export type CafeRankTrackingDetail = {
   id: number
+  type: string
   keyword: string
   url: string
-  advertisers: { id: number; company_name: string }[]
-  created_at: string
   status: "active" | "completed" | "stopped"
-  rounds: CafeRoundHistory[]
+  current_session: number
+  agency_id: number
+  agency_name: string
+  advertiser_id: number
+  advertiser_name: string
+  created_at: string
+  updated_at: string
+  histories: CafeHistoryItem[]
+  history_total: number
 }
 
 export async function getCafeRankTrackingDetail(id: number) {

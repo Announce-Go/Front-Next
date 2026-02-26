@@ -1,19 +1,19 @@
 "use client"
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { HomeIcon } from "lucide-react";
-import { usePathname, useRouter } from "next/navigation";
-import { logout } from "@/Features/apis/auth";
-import { useState } from "react";
-import { useAuthStore } from "@/store/AuthStore";
-import { category } from "@/constants/category";
-import { cn } from "@/lib/utils";
+
+import Link from "next/link"
+import { usePathname, useRouter } from "next/navigation"
+import { useState } from "react"
+import { BarChart3, LogOut } from "lucide-react"
+import { logout } from "@/Features/apis/auth"
+import { useAuthStore } from "@/store/AuthStore"
+import { category } from "@/constants/category"
 
 export function UserSideBar() {
   const pathname = usePathname()
   const router = useRouter()
   const [isLoggingOut, setIsLoggingOut] = useState(false)
   const clearAuth = useAuthStore((s) => s.clearAuth)
+  const companyName = useAuthStore((s) => s.user?.name ?? "업체")
 
   const onLogout = async () => {
     if (isLoggingOut) return
@@ -30,46 +30,97 @@ export function UserSideBar() {
   }
 
   return (
-    <aside className="w-64 h-full border-r border-gray-200 bg-white hidden md:flex md:flex-col">
-      {/* 1. 상단 로고 및 검색 영역 */}
-      <div className="p-6 border-b border-gray-100">
-        <h1 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-          Go Home
-          <Button variant="ghost" size="icon" className="cursor-pointer">
-            <Link href="/user">
-              <HomeIcon className="size-4" />
-            </Link>
-          </Button>
-        </h1>
-        <p className="text-md font-bold text-orange-500">
-          더엘커뮤니케이션
-        </p>
+    <aside
+      className="w-64 h-full hidden md:flex md:flex-col"
+      style={{ background: "linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%)" }}
+    >
+      {/* 로고 영역 */}
+      <div
+        className="p-6"
+        style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}
+      >
+        <Link href="/agency/dashboard" className="flex items-center gap-3">
+          <div
+            className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+            style={{
+              background: "linear-gradient(135deg, #06b6d4, #6366f1)",
+              boxShadow: "0 0 20px rgba(99,102,241,0.4)",
+            }}
+          >
+            <BarChart3 className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <p
+              className="text-sm font-bold"
+              style={{
+                background: "linear-gradient(90deg, #ffffff, #a5f3fc, #818cf8)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+              }}
+            >
+              모두보고
+            </p>
+            <p className="text-[10px] font-medium" style={{ color: "#94a3b8" }}>
+              {companyName}
+            </p>
+          </div>
+        </Link>
       </div>
 
-      {/* 2. 내비게이션 메뉴 - role(agency)에 맞는 category.agency 사용 */}
+      {/* 네비게이션 */}
       <nav className="flex-1 overflow-y-auto p-4">
-        <div className="space-y-5">
+        <div className="space-y-6">
           {category.agency.map((section: any, sectionIdx: number) => {
             const sectionKey = Object.keys(section)[0]
             const items = Object.values(section[sectionKey]) as any[]
             return (
               <div key={sectionIdx}>
-                <h3 className="px-2 mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-slate-500">
+                <p
+                  className="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest"
+                  style={{ color: "#475569" }}
+                >
                   {sectionKey}
-                </h3>
+                </p>
                 <ul className="space-y-0.5">
                   {items.map((item: any, itemIdx: number) => {
-                    const isActive = pathname === item.href
+                    const isActive =
+                      pathname === item.href || pathname.startsWith(item.href + "/")
                     return (
                       <li key={itemIdx}>
                         <Link
                           href={item.href}
-                          className={cn(
-                            "flex items-center gap-2.5 px-3 py-2 rounded-xl text-[13px] font-medium transition-all duration-200",
-                            isActive ? "bg-gray-200 text-gray-900" : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                          )}
+                          className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-200"
+                          style={
+                            isActive
+                              ? {
+                                  background: "linear-gradient(90deg, rgba(6,182,212,0.2), rgba(99,102,241,0.2))",
+                                  color: "#ffffff",
+                                  border: "1px solid rgba(6,182,212,0.3)",
+                                  boxShadow: "0 0 12px rgba(99,102,241,0.15)",
+                                }
+                              : {
+                                  color: "#94a3b8",
+                                  border: "1px solid transparent",
+                                }
+                          }
+                          onMouseEnter={(e) => {
+                            if (!isActive) {
+                              e.currentTarget.style.background = "rgba(255,255,255,0.05)"
+                              e.currentTarget.style.color = "#ffffff"
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (!isActive) {
+                              e.currentTarget.style.background = ""
+                              e.currentTarget.style.color = "#94a3b8"
+                            }
+                          }}
                         >
-                          <span className={isActive ? "text-orange-500" : "text-gray-500"}>
+                          <span
+                            style={{
+                              color: isActive ? "#06b6d4" : "#475569",
+                            }}
+                          >
                             {item?.icon}
                           </span>
                           {item.label}
@@ -83,21 +134,25 @@ export function UserSideBar() {
           })}
         </div>
       </nav>
-      
-      {/* 3. 하단 영역 */}
-      <div className="p-4 border-t border-gray-100 text-xs text-gray-500 space-y-3">
-        <Button
+
+      {/* 하단 로그아웃 */}
+      <div className="p-4" style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}>
+        <button
           type="button"
-          variant="outline"
-          className="w-full cursor-pointer"
           onClick={onLogout}
           disabled={isLoggingOut}
+          className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all hover:opacity-80 disabled:opacity-40"
+          style={{
+            background: "rgba(248,113,113,0.08)",
+            color: "#f87171",
+            border: "1px solid rgba(248,113,113,0.2)",
+          }}
         >
+          <LogOut className="w-4 h-4" />
           {isLoggingOut ? "로그아웃 중..." : "로그아웃"}
-        </Button>
-        <div>v1.0.0</div>
+        </button>
+        <p className="text-center mt-3 text-[10px]" style={{ color: "#334155" }}>v1.0.0</p>
       </div>
     </aside>
   )
 }
-

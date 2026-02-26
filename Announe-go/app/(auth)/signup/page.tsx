@@ -56,10 +56,12 @@ const venderSchema = z.object({
 })
 
 const PRODUCTS = [
-  { id: "blog", label: "블로그 상위노출", value: "blog" },
-  { id: "brandBlog", label: "브랜드 블로그", value: "brandBlog" },
-  { id: "cafe", label: "카페", value: "cafe" },
-  { id: "paper", label: "영수증 리뷰", value: "paper" },
+  { id: "place_rank", label: "플레이스 순위", value: "place_rank" },
+  { id: "cafe_rank", label: "카페 순위", value: "cafe_rank" },
+  { id: "blog_rank", label: "블로그 순위", value: "blog_rank" },
+  { id: "blog_posting", label: "블로그 포스팅 기록", value: "blog_posting" },
+  { id: "news_articles", label: "언론기사", value: "news_articles" },
+  { id: "cafe_infiltration", label: "카페 침투", value: "cafe_infiltration" },
 ]
 
 const AGREEMENTS = [

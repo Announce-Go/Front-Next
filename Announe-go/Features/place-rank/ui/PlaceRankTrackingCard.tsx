@@ -1,40 +1,14 @@
 import Link from "next/link"
 import { serverFetch } from "@/Featchs/api/server-fetch"
 import { PlaceRankTrackingControls } from "@/Features/place-rank/ui/PlaceRankTrackingControls"
-
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Progress } from "@/components/ui/progress"
-
-import { ExternalLink, MoreHorizontal, PlayCircle } from "lucide-react"
-
-
+import { ExternalLink, ChevronRight, ChevronLeft, PlayCircle } from "lucide-react"
 
 type TrackingItem = {
   id: number
-  type: string
   keyword: string
   url: string
   status: "active" | "stopped" | string
   current_session: number
-  agency_id: number
-  agency_name: string
   advertiser_id: number
   advertiser_name: string
   latest_rank: number | null
@@ -96,7 +70,7 @@ export async function PlaceRankTrackingCard(props: { searchParams?: SearchParams
       cache: "no-store",
     })
   } catch (e) {
-    error = e instanceof Error ? e.message : "목록을 불러오지 못했습니다."
+    error = e instanceof Error ? e.message : "목록을 불러오지 못했어요."
   }
 
   const items = data?.items ?? []
@@ -121,150 +95,218 @@ export async function PlaceRankTrackingCard(props: { searchParams?: SearchParams
   })()
 
   return (
-    <Card className="shadow-sm border-l-4 border-l-green-500">
-      <CardHeader>
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <CardTitle>추적 목록 (월보장)</CardTitle>
-            <CardDescription>관리 중인 키워드 리스트입니다.</CardDescription>
-          </div>
-
-          <PlaceRankTrackingControls
-            status={status}
-            keyword={keyword}
-            advertiserId={advertiserId}
-            page={page}
-            pageSize={pageSize}
-          />
+    <div
+      className="rounded-2xl border backdrop-blur-sm"
+      style={{
+        background: "rgba(255,255,255,0.06)",
+        borderColor: "rgba(255,255,255,0.1)",
+      }}
+    >
+      {/* 헤더 */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-6 pt-6 pb-4">
+        <div>
+          <h2 className="text-sm font-semibold text-white">추적 목록 (월보장)</h2>
+          <p className="text-xs mt-0.5" style={{ color: "#94a3b8" }}>
+            관리 중인 키워드 리스트예요.
+            {pagination && (
+              <span className="ml-2" style={{ color: "#06b6d4" }}>
+                총 {pagination.total}건
+              </span>
+            )}
+          </p>
         </div>
-      </CardHeader>
+        <PlaceRankTrackingControls
+          status={status}
+          keyword={keyword}
+          advertiserId={advertiserId}
+          page={page}
+          pageSize={pageSize}
+        />
+      </div>
 
-      <CardContent>
+      {/* 테이블 */}
+      <div className="overflow-x-auto">
         {error ? (
-          <div className="text-sm text-red-500">{error}</div>
-        ) : items.length === 0 ? (
-          <div className="text-sm text-gray-500">등록된 추적 항목이 없습니다.</div>
-        ) : (
-          <div className="space-y-3">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-slate-50/50">
-                  <TableHead className="w-[150px]">키워드</TableHead>
-                  <TableHead className="w-[80px]">URL</TableHead>
-                  <TableHead>광고주</TableHead>
-                  <TableHead>회차</TableHead>
-                  <TableHead className="w-[240px]">최근 체크</TableHead>
-                  <TableHead className="text-right">최근순위</TableHead>
-                  <TableHead className="text-right">상태</TableHead>
-                  <TableHead className="w-[50px]"></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {items.map((it) => {
-                  const rank =
-                    typeof it.latest_rank === "number" ? it.latest_rank : null
-                  return (
-                    <TableRow key={String(it.id)} className="hover:bg-slate-50/50">
-                      <TableCell className="font-bold text-slate-800">
-                        {it.keyword}
-                      </TableCell>
-                      <TableCell>
-                        <Button asChild variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-green-600">
-                          <a href={it.url} target="_blank" rel="noopener noreferrer">
-                            <ExternalLink className="w-4 h-4" />
-                          </a>
-                        </Button>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Avatar className="h-6 w-6">
-                            <AvatarFallback className="text-[9px] bg-blue-100 text-blue-700 font-bold">
-                              {(it.advertiser_name?.[0] ?? "A").toUpperCase()}
-                            </AvatarFallback>
-                          </Avatar>
-                          <span className="text-sm font-medium text-slate-700">
-                            {it.advertiser_name}
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant="secondary"
-                          className="font-normal bg-slate-100 text-slate-600"
-                        >
-                          {it.current_session}회차
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="space-y-1">
-                          <div className="flex justify-between text-xs text-muted-foreground">
-                            <span>{it.latest_checked_at ?? "-"}</span>
-                            <span className="font-medium text-green-600">
-                              {it.created_at ? `등록: ${it.created_at}` : ""}
-                            </span>
-                          </div>
-                          <Progress value={0} className="h-2 bg-slate-100" />
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-1">
-                          {rank !== null ? (
-                            <Badge className="bg-green-100 text-green-700 hover:bg-green-200 border-0 text-base px-3 py-1">
-                              {rank}위
-                            </Badge>
-                          ) : (
-                            <Badge className="bg-slate-100 text-slate-600 hover:bg-slate-200 border-0 text-base px-3 py-1">
-                              -
-                            </Badge>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Badge
-                          variant="outline"
-                          className="border-green-200 text-green-600 bg-green-50 flex w-fit ml-auto items-center gap-1"
-                        >
-                          <PlayCircle className="w-3 h-3" />{" "}
-                          {it.status === "stopped" ? "중단됨" : "추적중"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Button type="button" variant="ghost" size="icon" className="h-8 w-8">
-                          <MoreHorizontal className="w-4 h-4" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  )
-                })}
-              </TableBody>
-            </Table>
-
-            <div className="flex items-center justify-between text-sm text-gray-500">
-              <div>
-                {pagination
-                  ? `총 ${pagination.total}건 • ${pagination.page}/${pagination.total_pages} 페이지`
-                  : `페이지 ${page}`}
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  asChild
-                  variant="outline"
-                  disabled={pagination ? !pagination.has_prev : page <= 1}
-                >
-                  <Link href={prevHref}>이전</Link>
-                </Button>
-                <Button
-                  asChild
-                  variant="outline"
-                  disabled={pagination ? !pagination.has_next : items.length < pageSize}
-                >
-                  <Link href={nextHref}>다음</Link>
-                </Button>
-              </div>
-            </div>
+          <div className="px-6 py-10 text-center text-sm" style={{ color: "#f87171" }}>
+            {error}
           </div>
+        ) : items.length === 0 ? (
+          <div className="px-6 py-10 text-center text-sm" style={{ color: "#475569" }}>
+            등록된 추적 항목이 없어요.
+          </div>
+        ) : (
+          <table className="w-full text-sm">
+            <thead>
+              <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
+                {["키워드", "URL", "광고주", "회차", "최근 체크", "최근순위", "상태", ""].map((h) => (
+                  <th
+                    key={h}
+                    className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider"
+                    style={{ color: "#475569" }}
+                  >
+                    {h}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {items.map((it) => {
+                const rank = typeof it.latest_rank === "number" ? it.latest_rank : null
+                const isStopped = it.status === "stopped"
+
+                return (
+                  <tr
+                    key={String(it.id)}
+                    className="transition-colors hover:bg-white/[0.04]"
+                    style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}
+                  >
+                    {/* 키워드 */}
+                    <td className="px-4 py-3.5 font-semibold text-white">
+                      {it.keyword}
+                    </td>
+
+                    {/* URL */}
+                    <td className="px-4 py-3.5">
+                      <a
+                        href={it.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="transition-opacity hover:opacity-60"
+                        style={{ color: "#06b6d4" }}
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                      </a>
+                    </td>
+
+                    {/* 광고주 */}
+                    <td className="px-4 py-3.5">
+                      <div className="flex items-center gap-2">
+                        <div
+                          className="w-6 h-6 rounded-lg flex items-center justify-center text-[10px] font-bold flex-shrink-0"
+                          style={{ background: "rgba(99,102,241,0.2)", color: "#818cf8" }}
+                        >
+                          {(it.advertiser_name?.[0] ?? "A").toUpperCase()}
+                        </div>
+                        <span className="text-sm" style={{ color: "#94a3b8" }}>
+                          {it.advertiser_name}
+                        </span>
+                      </div>
+                    </td>
+
+                    {/* 회차 */}
+                    <td className="px-4 py-3.5">
+                      <span
+                        className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium"
+                        style={{
+                          background: "rgba(255,255,255,0.06)",
+                          color: "#94a3b8",
+                          border: "1px solid rgba(255,255,255,0.1)",
+                        }}
+                      >
+                        {it.current_session}회차
+                      </span>
+                    </td>
+
+                    {/* 최근 체크 */}
+                    <td className="px-4 py-3.5">
+                      <span className="text-xs tabular-nums" style={{ color: "#475569" }}>
+                        {it.latest_checked_at ?? "-"}
+                      </span>
+                    </td>
+
+                    {/* 최근 순위 */}
+                    <td className="px-4 py-3.5">
+                      {rank !== null ? (
+                        <span className="font-bold text-base" style={{ color: "#06b6d4" }}>
+                          {rank}위
+                        </span>
+                      ) : (
+                        <span className="text-xs" style={{ color: "#475569" }}>-</span>
+                      )}
+                    </td>
+
+                    {/* 상태 */}
+                    <td className="px-4 py-3.5">
+                      <span
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium"
+                        style={
+                          isStopped
+                            ? {
+                                background: "rgba(148,163,184,0.1)",
+                                color: "#94a3b8",
+                                border: "1px solid rgba(148,163,184,0.25)",
+                              }
+                            : {
+                                background: "rgba(34,197,94,0.1)",
+                                color: "#22c55e",
+                                border: "1px solid rgba(34,197,94,0.25)",
+                              }
+                        }
+                      >
+                        <PlayCircle className="w-3 h-3" />
+                        {isStopped ? "중단됨" : "추적중"}
+                      </span>
+                    </td>
+
+                    {/* 상세 링크 */}
+                    <td className="px-4 py-3.5">
+                      <Link
+                        href={`/agency/place-rank/tracking/${it.id}`}
+                        className="w-7 h-7 rounded-lg flex items-center justify-center transition-all hover:opacity-75"
+                        style={{
+                          background: "rgba(255,255,255,0.06)",
+                          border: "1px solid rgba(255,255,255,0.1)",
+                        }}
+                      >
+                        <ChevronRight className="w-3.5 h-3.5" style={{ color: "#94a3b8" }} />
+                      </Link>
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
         )}
-      </CardContent>
-    </Card>
+      </div>
+
+      {/* 페이지네이션 */}
+      {items.length > 0 && (
+        <div className="flex items-center justify-between px-6 py-4" style={{ borderTop: "1px solid rgba(255,255,255,0.07)" }}>
+          <span className="text-xs" style={{ color: "#475569" }}>
+            {pagination
+              ? `${pagination.page} / ${pagination.total_pages} 페이지`
+              : `페이지 ${page}`}
+          </span>
+          <div className="flex gap-2">
+            <Link
+              href={prevHref}
+              aria-disabled={pagination ? !pagination.has_prev : page <= 1}
+              className="w-8 h-8 rounded-lg flex items-center justify-center transition-all hover:opacity-75"
+              style={{
+                background: "rgba(255,255,255,0.06)",
+                border: "1px solid rgba(255,255,255,0.1)",
+                pointerEvents: (pagination ? !pagination.has_prev : page <= 1) ? "none" : "auto",
+                opacity: (pagination ? !pagination.has_prev : page <= 1) ? 0.3 : 1,
+              }}
+            >
+              <ChevronLeft className="w-4 h-4" style={{ color: "#94a3b8" }} />
+            </Link>
+            <Link
+              href={nextHref}
+              aria-disabled={pagination ? !pagination.has_next : items.length < pageSize}
+              className="w-8 h-8 rounded-lg flex items-center justify-center transition-all hover:opacity-75"
+              style={{
+                background: "rgba(255,255,255,0.06)",
+                border: "1px solid rgba(255,255,255,0.1)",
+                pointerEvents: (pagination ? !pagination.has_next : items.length < pageSize) ? "none" : "auto",
+                opacity: (pagination ? !pagination.has_next : items.length < pageSize) ? 0.3 : 1,
+              }}
+            >
+              <ChevronRight className="w-4 h-4" style={{ color: "#94a3b8" }} />
+            </Link>
+          </div>
+        </div>
+      )}
+    </div>
   )
 }

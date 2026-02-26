@@ -35,7 +35,7 @@ const PAGE_SIZE = 10
 function SkeletonRow() {
   return (
     <tr>
-      {[120, 80, 100, 100, 60, 100, 70].map((w, i) => (
+      {[120, 80, 100, 100, 60, 120, 70].map((w, i) => (
         <td key={i} className="py-3.5 px-4">
           <div
             className="h-4 rounded-lg animate-pulse"
@@ -281,9 +281,9 @@ function PlaceRankContent() {
                 <th className="py-3 px-4 text-left font-medium border-b" style={{ borderColor: "var(--th-row-border)" }}>키워드</th>
                 <th className="py-3 px-4 text-left font-medium border-b hidden sm:table-cell" style={{ borderColor: "var(--th-row-border)" }}>URL</th>
                 <th className="py-3 px-4 text-left font-medium border-b hidden md:table-cell" style={{ borderColor: "var(--th-row-border)" }}>광고주</th>
-                <th className="py-3 px-4 text-left font-medium border-b hidden md:table-cell" style={{ borderColor: "var(--th-row-border)" }}>업체</th>
+                <th className="py-3 px-4 text-left font-medium border-b hidden md:table-cell" style={{ borderColor: "var(--th-row-border)" }}>에이전시</th>
                 <th className="py-3 px-4 text-left font-medium border-b" style={{ borderColor: "var(--th-row-border)" }}>회차</th>
-                <th className="py-3 px-4 text-left font-medium border-b hidden lg:table-cell" style={{ borderColor: "var(--th-row-border)" }}>진행률</th>
+                <th className="py-3 px-4 text-left font-medium border-b hidden lg:table-cell" style={{ borderColor: "var(--th-row-border)" }}>최근 체크</th>
                 <th className="py-3 px-4 text-right font-medium border-b" style={{ borderColor: "var(--th-row-border)" }}>최근순위</th>
               </tr>
             </thead>
@@ -299,17 +299,17 @@ function PlaceRankContent() {
               ) : (
                 items.map((item) => {
                   const st = STATUS_LABELS[item.status] ?? STATUS_LABELS.stopped
-                  const progress = item.total_count > 0
-                    ? Math.round((item.progress_count / item.total_count) * 100)
-                    : 0
+                  const checkedAt = item.latest_checked_at
+                    ? new Date(item.latest_checked_at).toLocaleDateString("ko-KR", {
+                        year: "numeric", month: "2-digit", day: "2-digit",
+                      })
+                    : "-"
                   return (
                     <tr
                       key={item.id}
                       onClick={() => router.push(`/admin/place-rank/tracking/${item.id}`)}
-                      className="cursor-pointer transition-colors border-t"
+                      className="cursor-pointer transition-colors border-t hover:bg-[var(--th-row-hover)]"
                       style={{ borderColor: "var(--th-row-border)" }}
-                      onMouseEnter={(e) => { e.currentTarget.style.background = "var(--th-row-hover)" }}
-                      onMouseLeave={(e) => { e.currentTarget.style.background = "" }}
                     >
                       {/* 키워드 */}
                       <td className="py-3.5 px-4">
@@ -337,18 +337,18 @@ function PlaceRankContent() {
                           style={{ color: "#06b6d4" }}
                         >
                           <ExternalLink className="w-3.5 h-3.5 flex-shrink-0" />
-                          <span className="text-xs truncate max-w-[140px]">링크</span>
+                          <span className="text-xs">링크</span>
                         </a>
                       </td>
 
                       {/* 광고주 */}
                       <td className="py-3.5 px-4 text-xs hidden md:table-cell" style={{ color: "var(--th-text-2)" }}>
-                        {item.advertiser_company_name || "-"}
+                        {item.advertiser_name || "-"}
                       </td>
 
-                      {/* 업체 */}
+                      {/* 에이전시 */}
                       <td className="py-3.5 px-4 text-xs hidden md:table-cell" style={{ color: "var(--th-text-3)" }}>
-                        {item.agency_company_name || "-"}
+                        {item.agency_name || "-"}
                       </td>
 
                       {/* 회차 */}
@@ -357,31 +357,13 @@ function PlaceRankContent() {
                           className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium"
                           style={{ background: "var(--th-table-head)", color: "var(--th-text-2)", border: "1px solid var(--th-row-border)" }}
                         >
-                          {item.current_round}회차
+                          {item.current_session}회차
                         </span>
                       </td>
 
-                      {/* 진행률 */}
-                      <td className="py-3.5 px-4 hidden lg:table-cell">
-                        <div className="space-y-1 min-w-[120px]">
-                          <div className="flex justify-between text-[11px]" style={{ color: "var(--th-text-3)" }}>
-                            <span>{item.progress_count}/{item.total_count}회</span>
-                            <span style={{ color: progress === 100 ? "#6366f1" : "#34d399", fontWeight: 600 }}>
-                              {progress}%
-                            </span>
-                          </div>
-                          <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: "var(--th-table-head)" }}>
-                            <div
-                              className="h-full rounded-full transition-all"
-                              style={{
-                                width: `${progress}%`,
-                                background: progress === 100
-                                  ? "linear-gradient(90deg, #6366f1, #818cf8)"
-                                  : "linear-gradient(90deg, #06b6d4, #34d399)",
-                              }}
-                            />
-                          </div>
-                        </div>
+                      {/* 최근 체크 */}
+                      <td className="py-3.5 px-4 text-xs hidden lg:table-cell" style={{ color: "var(--th-text-3)" }}>
+                        {checkedAt}
                       </td>
 
                       {/* 최근순위 */}

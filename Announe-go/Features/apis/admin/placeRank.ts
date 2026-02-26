@@ -15,15 +15,18 @@ export async function getPlaceRankRealtime(params: { keyword: string; url: strin
 /* ── 추적 목록 ── */
 export type PlaceRankTrackingItem = {
   id: number
+  type: string
   keyword: string
   url: string
-  advertiser_company_name: string
-  agency_company_name: string
-  current_round: number
-  progress_count: number
-  total_count: number
-  latest_rank: number | null
   status: "active" | "completed" | "stopped"
+  current_session: number
+  agency_id: number
+  agency_name: string
+  advertiser_id: number
+  advertiser_name: string
+  latest_rank: number | null
+  latest_checked_at: string | null
+  created_at: string
 }
 
 export type PlaceRankTrackingListResponse = {
@@ -50,26 +53,27 @@ export async function getPlaceRankTrackingList(params?: {
 }
 
 /* ── 추적 상세 ── */
-export type RankHistoryEntry = {
-  date: string
+export type HistoryItem = {
+  checked_at: string
   rank: number | null
-}
-
-export type RoundHistory = {
-  round: number
-  status: "active" | "completed"
-  count: number
-  entries: RankHistoryEntry[]
+  session: number
 }
 
 export type PlaceRankTrackingDetail = {
   id: number
+  type: string
   keyword: string
   url: string
-  advertisers: { id: number; company_name: string }[]
-  created_at: string
   status: "active" | "completed" | "stopped"
-  rounds: RoundHistory[]
+  current_session: number
+  agency_id: number
+  agency_name: string
+  advertiser_id: number
+  advertiser_name: string
+  created_at: string
+  updated_at: string
+  histories: HistoryItem[]
+  history_total: number
 }
 
 export async function getPlaceRankTrackingDetail(id: number) {

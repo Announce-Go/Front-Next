@@ -15,15 +15,18 @@ export async function getBlogRankRealtime(params: { keyword: string; url: string
 /* ── 추적 목록 ── */
 export type BlogRankTrackingItem = {
   id: number
+  type: string
   keyword: string
   url: string
-  advertiser_company_name: string
-  agency_company_name: string
-  current_round: number
-  progress_count: number
-  total_count: number
-  latest_rank: number | null
   status: "active" | "completed" | "stopped"
+  current_session: number
+  agency_id: number
+  agency_name: string
+  advertiser_id: number
+  advertiser_name: string
+  latest_rank: number | null
+  latest_checked_at: string | null
+  created_at: string
 }
 
 export type BlogRankTrackingListResponse = {
@@ -50,26 +53,27 @@ export async function getBlogRankTrackingList(params?: {
 }
 
 /* ── 추적 상세 ── */
-export type BlogRankHistoryEntry = {
-  date: string
+export type BlogHistoryItem = {
+  checked_at: string
   rank: number | null
-}
-
-export type BlogRoundHistory = {
-  round: number
-  status: "active" | "completed"
-  count: number
-  entries: BlogRankHistoryEntry[]
+  session: number
 }
 
 export type BlogRankTrackingDetail = {
   id: number
+  type: string
   keyword: string
   url: string
-  advertisers: { id: number; company_name: string }[]
-  created_at: string
   status: "active" | "completed" | "stopped"
-  rounds: BlogRoundHistory[]
+  current_session: number
+  agency_id: number
+  agency_name: string
+  advertiser_id: number
+  advertiser_name: string
+  created_at: string
+  updated_at: string
+  histories: BlogHistoryItem[]
+  history_total: number
 }
 
 export async function getBlogRankTrackingDetail(id: number) {
